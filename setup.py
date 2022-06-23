@@ -23,7 +23,7 @@ setup(
         'networkx==2.6.2',
         'timm==0.4.12',
         'wandb==0.12.2',
-        'pytorch-lightning==1.4.8',
+        'pytorch-lightning==1.6.4',
         'fairscale==0.4.0'
     ],
     packages=find_packages(),
