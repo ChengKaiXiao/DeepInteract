@@ -4,48 +4,18 @@ from pathlib import Path
 
 import pytorch_lightning as pl
 import torch.nn as nn
-from pytorch_lightning.plugins import DDPPlugin
+# from pytorch_lightning.plugins import DDPPlugin
 
 from project.datasets.PICP.picp_dgl_data_module import PICPDGLDataModule
 from project.utils.deepinteract_constants import NODE_COUNT_LIMIT, RESIDUE_COUNT_LIMIT
-from project.utils.deepinteract_modules import LitGINI
+from project.utils.mymodel import LitGINI
 from project.utils.deepinteract_utils import collect_args, process_args, construct_pl_logger
 
-import contextlib
-import logging
-from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-import numpy as np
-import torch
-import torch.nn as nn
-from torch import Tensor
-from torch.utils.hooks import RemovableHandle
-
-import pytorch_lightning as pl
-from pytorch_lightning.utilities.warnings import WarningCache
-
-log = logging.getLogger(__name__)
-warning_cache = WarningCache()
-
-PARAMETER_NUM_UNITS = [" ", "K", "M", "B", "T"]
-UNKNOWN_SIZE = "?"
+from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
 # -------------------------------------------------------------------------------------------------------------------------------------
 # Following code curated for DeepInteract (https://github.com/BioinfoMachineLearning/DeepInteract):
 # -------------------------------------------------------------------------------------------------------------------------------------
-def _is_lazy_weight_tensor(p: Tensor) -> bool:
-    from torch.nn.parameter import UninitializedParameter
 
-    if isinstance(p, UninitializedParameter):
-        warning_cache.warn(
-            "A layer with UninitializedParameter was found. "
-            "Thus, the total number of parameters detected may be inaccurate."
-        )
-        return True
-    return False
-
-def total_parameters(self) -> int:
-    return sum(p.numel() if not _is_lazy_weight_tensor(p) else 0 for p in self._model.parameters())
 
 def main(args):
     # -----------
@@ -64,7 +34,7 @@ def main(args):
                                          db5_percent_to_use=args.db5_percent_to_use,
                                          dips_percent_to_use=args.dips_percent_to_use,
                                          training_with_db5=args.training_with_db5,
-                                         testing_with_casp_capri=args.testing_with_casp_capri,
+                                         testing_with_casp_capri=False, #args.testing_with_casp_capri,
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
     picp_data_module.setup()
@@ -127,73 +97,62 @@ def main(args):
     litgini_template_ckpt_filename_metric_to_track = f'{args.metric_to_track}:.3f'
     template_ckpt_filename = 'LitGINI-{epoch:02d}-{' + litgini_template_ckpt_filename_metric_to_track + '}'
     
-    # print(sum(
-    #         p.numel() if not _is_lazy_weight_tensor(p) else 0 for p in model.parameters() if p.requires_grad
-    #     ))
 
-    dataloader = picp_data_module.train_dataloader()
-    batch = next(iter(dataloader))
-    print(batch[1])
-    # train_batch, val_batch = batch['train_batch'], batch['val_batch']
-    # graph1, graph2, examples_list, filepaths = train_batch[0], train_batch[1], train_batch[2], train_batch[3]
-    # print(graph1)
-    
-    
-    # # ------------
-    # # Checkpoint
-    # # ------------
-    # if not args.fine_tune:
-    #     model = model.load_from_checkpoint(ckpt_path,
-    #                                        use_wandb_logger=use_wandb_logger,
-    #                                        batch_size=args.batch_size,
-    #                                        lr=args.lr,
-    #                                        weight_decay=args.weight_decay,
-    #                                        dropout_rate=args.dropout_rate) if ckpt_provided else model
+    # ------------
+    # Checkpoint
+    # ------------
+    if not args.fine_tune:
+        model = model.load_from_checkpoint(ckpt_path,
+                                           use_wandb_logger=use_wandb_logger,
+                                           batch_size=args.batch_size,
+                                           lr=args.lr,
+                                           weight_decay=args.weight_decay,
+                                           dropout_rate=args.dropout_rate) if ckpt_provided else model
 
-    # # ------------
-    # # Trainer
-    # # ------------
-    # trainer = pl.Trainer.from_argparse_args(args)
+    # ------------
+    # Trainer
+    # ------------
+    trainer = pl.Trainer.from_argparse_args(args)
 
-    # # -------------
-    # # Learning Rate
-    # # -------------
-    # if args.find_lr:
-    #     lr_finder = trainer.tuner.lr_find(model, datamodule=picp_data_module)  # Run learning rate finder
-    #     fig = lr_finder.plot(suggest=True)  # Plot learning rates
-    #     fig.savefig('optimal_lr.pdf')
-    #     fig.show()
-    #     model.hparams.lr = lr_finder.suggestion()  # Save optimal learning rate
-    #     logging.info(f'Optimal learning rate found: {model.hparams.lr}')
+    # -------------
+    # Learning Rate
+    # -------------
+    if args.find_lr:
+        lr_finder = trainer.tuner.lr_find(model, datamodule=picp_data_module)  # Run learning rate finder
+        fig = lr_finder.plot(suggest=True)  # Plot learning rates
+        fig.savefig('optimal_lr.pdf')
+        fig.show()
+        model.hparams.lr = lr_finder.suggestion()  # Save optimal learning rate
+        logging.info(f'Optimal learning rate found: {model.hparams.lr}')
 
-    # # ------------
-    # # Logger
-    # # ------------
-    # pl_logger = construct_pl_logger(args)  # Log everything to an external logger
-    # trainer.logger = pl_logger  # Assign specified logger (e.g. TensorBoardLogger) to Trainer instance
+    # ------------
+    # Logger
+    # ------------
+    pl_logger = construct_pl_logger(args)  # Log everything to an external logger
+    trainer.logger = pl_logger  # Assign specified logger (e.g. TensorBoardLogger) to Trainer instance
 
-    # # -----------
-    # # Callbacks
-    # # -----------
-    # # Create and use callbacks
-    # mode = 'min' if 'ce' in args.metric_to_track else 'max'
-    # early_stop_callback = pl.callbacks.EarlyStopping(monitor=args.metric_to_track,
-    #                                                  mode=mode,
-    #                                                  min_delta=args.min_delta,
-    #                                                  patience=args.patience)
-    # ckpt_callback = pl.callbacks.ModelCheckpoint(
-    #     monitor=args.metric_to_track,
-    #     mode=mode,
-    #     verbose=True,
-    #     save_last=True,
-    #     save_top_k=3,
-    #     filename=template_ckpt_filename  # Warning: May cause a race condition if calling trainer.test() with many GPUs
-    # )
-    # lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
-    # callbacks = [early_stop_callback, ckpt_callback]
-    # if args.fine_tune:
-    #     callbacks.append(lr_monitor_callback)
-    # trainer.callbacks = callbacks
+    # -----------
+    # Callbacks
+    # -----------
+    # Create and use callbacks
+    mode = 'min' if 'ce' in args.metric_to_track else 'max'
+    early_stop_callback = pl.callbacks.EarlyStopping(monitor=args.metric_to_track,
+                                                     mode=mode,
+                                                     min_delta=args.min_delta,
+                                                     patience=args.patience)
+    ckpt_callback = pl.callbacks.ModelCheckpoint(
+        monitor=args.metric_to_track,
+        mode=mode,
+        verbose=True,
+        save_last=True,
+        save_top_k=3,
+        filename=template_ckpt_filename  # Warning: May cause a race condition if calling trainer.test() with many GPUs
+    )
+    lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
+    callbacks = [early_stop_callback, ckpt_callback]
+    if args.fine_tune:
+        callbacks.append(lr_monitor_callback)
+    trainer.callbacks = callbacks
 
     # # ------------
     # # Restore
@@ -209,16 +168,27 @@ def main(args):
     #                                        lr=args.lr,
     #                                        weight_decay=args.weight_decay)
 
-    # # -------------
-    # # Training
-    # # -------------
-    # # Train with the provided model and DataModule
-    # trainer.fit(model=model, datamodule=picp_data_module)
+    # -------------
+    # Training
+    # -------------
+    # Train with the provided model and DataModule
+    trainer.fit(model=model, datamodule=picp_data_module)
 
-    # # -------------
-    # # Testing
-    # # -------------
-    # trainer.test()
+    def get_n_params(model):
+        pp=0
+        for p in list(model.parameters()):
+            nn=1
+            for s in list(p.size()):
+                nn = nn*s
+            pp += nn
+        return pp
+
+    print(get_n_params(model))
+
+    # -------------
+    # Testing
+    # -------------
+    trainer.test()
 
 
 if __name__ == '__main__':
@@ -239,7 +209,7 @@ if __name__ == '__main__':
 
     # Set Lightning-specific parameter values before constructing Trainer instance
     args.max_time = {'hours': args.max_hours, 'minutes': args.max_minutes}
-    args.max_epochs = args.num_epochs
+    args.max_epochs = 1 #args.num_epochs
     args.profiler = args.profiler_method
     args.accelerator = args.multi_gpu_backend
     args.auto_select_gpus = args.auto_choose_gpus
