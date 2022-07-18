@@ -214,7 +214,7 @@ class NonLinear(nn.Module):
 def get_arguments():
     parser = argparse.ArgumentParser(description="Architechture")
     parser.add_argument("--layers", type=int, default=4, metavar="L", help="num encoder layers")
-    parser.add_argument("--blocks", type=int, default=1, metavar="L", help="num blocks")
+    parser.add_argument("--blocks", type=int, default=12, metavar="L", help="num blocks")
     parser.add_argument("--embed-dim", type=int, default=128, metavar="H", help="encoder embedding dimension")
     parser.add_argument(
         "--ffn-embed-dim",

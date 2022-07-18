@@ -209,9 +209,10 @@ if __name__ == '__main__':
 
     # Set Lightning-specific parameter values before constructing Trainer instance
     args.max_time = {'hours': args.max_hours, 'minutes': args.max_minutes}
-    args.max_epochs = 1 #args.num_epochs
+    args.max_epochs = args.num_epochs
     args.profiler = args.profiler_method
-    args.accelerator = args.multi_gpu_backend
+    # args.accelerator = args.multi_gpu_backend
+    args.strategy = args.train_strategy
     args.auto_select_gpus = args.auto_choose_gpus
     args.gpus = args.num_gpus
     args.num_nodes = args.num_compute_nodes
@@ -222,11 +223,11 @@ if __name__ == '__main__':
     args.stochastic_weight_avg = args.stc_weight_avg
     args.deterministic = True  # Make LightningModule's training reproducible
 
-    # Set plugins for Lightning
-    args.plugins = [
-        # 'ddp_sharded',  # For sharded model training (to reduce GPU requirements)
-        DDPPlugin(find_unused_parameters=False)
-    ]
+    # # Set plugins for Lightning
+    # args.plugins = [
+    #     # 'ddp_sharded',  # For sharded model training (to reduce GPU requirements)
+    #     DDPPlugin(find_unused_parameters=False)
+    # ]
 
     # Finalize all arguments as necessary
     args = process_args(args)

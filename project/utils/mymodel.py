@@ -482,7 +482,7 @@ class LitGINI(pl.LightningModule):
 
         # Reset learnable parameters and log hyperparameters
         self.reset_parameters()
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['gnn_activ_fn'])
 
     def reset_parameters(self):
         """Reinitialize learnable parameters."""

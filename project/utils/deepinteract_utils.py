@@ -1065,7 +1065,11 @@ def collect_args():
     # -----------------
     parser.add_argument('--max_hours', type=int, default=1, help='Maximum number of hours to allot for training')
     parser.add_argument('--max_minutes', type=int, default=55, help='Maximum number of minutes to allot for training')
+
+    # replace with strategy ddp
     parser.add_argument('--multi_gpu_backend', type=str, default='ddp', help='Multi-GPU backend for training')
+    parser.add_argument('--train_strategy', type=str, default='ddp', help='Training strategy')
+
     parser.add_argument('--num_gpus', type=int, default=1, help='Number of GPUs to use (e.g. -1 = all available GPUs)')
     parser.add_argument('--auto_choose_gpus', action='store_true', dest='auto_choose_gpus', help='Auto-select GPUs')
     parser.add_argument('--num_compute_nodes', type=int, default=1, help='Number of compute nodes to use')
@@ -1074,7 +1078,7 @@ def collect_args():
     parser.add_argument('--profiler_method', type=str, default=None, help='PL profiler to use (e.g. simple)')
     parser.add_argument('--ckpt_dir', type=str, default=f'{os.path.join(os.getcwd(), "checkpoints")}',
                         help='Directory in which to save checkpoints')
-    parser.add_argument('--ckpt_name', type=str, default='Model0', help='Filename of best checkpoint')
+    parser.add_argument('--ckpt_name', type=str, default='GraphormerModel0', help='Filename of best checkpoint')
     parser.add_argument('--min_delta', type=float, default=5e-6, help='Minimum percentage of change required to'
                                                                       ' "metric_to_track" before early stopping'
                                                                       ' after surpassing patience')
