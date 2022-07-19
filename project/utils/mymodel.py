@@ -494,8 +494,8 @@ class LitGINI(pl.LightningModule):
         """Define all layers for the chosen GNN module."""
         # gnn_layers = [nn.Identity()]
         # gnn_layers = [GraphormerModule()]
-        arg = get_arguments()
-        gnn_layers = [Graphormer3Dmodule(arg)]
+        arguments = get_arguments()
+        gnn_layers = [Graphormer3Dmodule(arguments)]
         self.gnn_module = nn.ModuleList(gnn_layers)
 
     def get_interact_module(self):

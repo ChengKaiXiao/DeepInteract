@@ -11,7 +11,9 @@ from project.utils.deepinteract_constants import NODE_COUNT_LIMIT, RESIDUE_COUNT
 from project.utils.mymodel import LitGINI
 from project.utils.deepinteract_utils import collect_args, process_args, construct_pl_logger
 
-from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
+# from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
+from pytorch_lightning.callbacks import TQDMProgressBar
+
 # -------------------------------------------------------------------------------------------------------------------------------------
 # Following code curated for DeepInteract (https://github.com/BioinfoMachineLearning/DeepInteract):
 # -------------------------------------------------------------------------------------------------------------------------------------
@@ -149,7 +151,9 @@ def main(args):
         filename=template_ckpt_filename  # Warning: May cause a race condition if calling trainer.test() with many GPUs
     )
     lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
-    callbacks = [early_stop_callback, ckpt_callback]
+
+    progress_bar = TQDMProgressBar(refresh_rate=100)
+    callbacks = [early_stop_callback, ckpt_callback, progress_bar]
     if args.fine_tune:
         callbacks.append(lr_monitor_callback)
     trainer.callbacks = callbacks
