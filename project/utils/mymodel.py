@@ -492,13 +492,13 @@ class LitGINI(pl.LightningModule):
                 encoder_output_stride=16,
                 decoder_channels=self.num_interact_hidden_channels,
                 decoder_atrous_rates=(12, 24, 36),
-                in_channels=self.num_gnn_hidden_channels * 2,
+                in_channels=self.num_interact_hidden_channels * 2,
                 classes=self.num_classes,
                 upsampling=4
             )
         else:  # Otherwise, default to using our dilated ResNet with squeeze-and-excitation (SE)
             interact_module = ResNet2DInputWithOptAttention(num_chunks=self.num_interact_layers,
-                                                            init_channels=self.num_gnn_hidden_channels * 2,
+                                                            init_channels=self.num_interact_hidden_channels * 2,
                                                             num_channels=self.num_interact_hidden_channels,
                                                             num_classes=self.num_classes,
                                                             use_attention=self.use_interact_attention,
