@@ -215,18 +215,18 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="Architechture")
     parser.add_argument("--layers", type=int, default=4, metavar="L", help="num encoder layers")
     parser.add_argument("--blocks", type=int, default=12, metavar="L", help="num blocks")
-    parser.add_argument("--embed-dim", type=int, default=1024, metavar="H", help="encoder embedding dimension")
+    parser.add_argument("--embed-dim", type=int, default=864, metavar="H", help="encoder embedding dimension")
     parser.add_argument(
         "--ffn-embed-dim",
         type=int,
-        default=1024,
+        default=864,
         metavar="F",
         help="encoder embedding dimension for FFN",
     )
     parser.add_argument(
         "--attention-heads",
         type=int,
-        default=64,
+        default=54,
         metavar="A",
         help="num encoder attention heads",
     )
