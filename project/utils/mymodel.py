@@ -461,15 +461,15 @@ class LitGINI(pl.LightningModule):
         self.val_acc = tm.Accuracy(num_classes=self.num_classes, average=None)
         self.val_prec = tm.Precision(num_classes=self.num_classes, average=None)
         self.val_recall = tm.Recall(num_classes=self.num_classes, average=None)
-        self.val_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
-        self.val_auprc = tm.AveragePrecision(num_classes=self.num_classes)
+        # self.val_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
+        # self.val_auprc = tm.AveragePrecision(num_classes=self.num_classes)
         self.val_f1 = tm.F1(num_classes=self.num_classes, average=None)
 
         self.test_acc = tm.Accuracy(num_classes=self.num_classes, average=None)
         self.test_prec = tm.Precision(num_classes=self.num_classes, average=None)
         self.test_recall = tm.Recall(num_classes=self.num_classes, average=None)
-        self.test_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
-        self.test_auprc = tm.AveragePrecision(num_classes=self.num_classes)
+        # self.test_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
+        # self.test_auprc = tm.AveragePrecision(num_classes=self.num_classes)
         self.test_f1 = tm.F1(num_classes=self.num_classes, average=None)
 
         # Reset learnable parameters and log hyperparameters
@@ -730,8 +730,8 @@ class LitGINI(pl.LightningModule):
         val_prec = self.val_prec(preds_rounded, labels)[1]  # Calculate Precision of a single complex
         val_recall = self.val_recall(preds_rounded, labels)[1]  # Calculate Recall of a single complex
         val_f1 = self.val_f1(preds_rounded, labels)[1]  # Calculate F1 score of a single complex
-        val_auroc = self.val_auroc(preds, labels)[1]  # Calculate AUROC of a complex
-        val_auprc = self.val_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
+        # val_auroc = self.val_auroc(preds, labels)[1]  # Calculate AUROC of a complex
+        # val_auprc = self.val_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
 
         # Log validation step metric(s)
         self.log(f'val_ce', loss, sync_dist=True, batch_size=self.batch_size)
@@ -749,8 +749,8 @@ class LitGINI(pl.LightningModule):
             'val_prec': val_prec,
             'val_recall': val_recall,
             'val_f1': val_f1,
-            'val_auroc': val_auroc,
-            'val_auprc': val_auprc
+            # 'val_auroc': val_auroc,
+            # 'val_auprc': val_auprc
         }
 
     def validation_epoch_end(self, outputs: pl.utilities.types.EPOCH_OUTPUT) -> None:
@@ -760,32 +760,32 @@ class LitGINI(pl.LightningModule):
         val_precs = torch.cat([output_dict['val_prec'].unsqueeze(0) for output_dict in outputs])
         val_recalls = torch.cat([output_dict['val_recall'].unsqueeze(0) for output_dict in outputs])
         val_f1s = torch.cat([output_dict['val_f1'].unsqueeze(0) for output_dict in outputs])
-        val_aurocs = torch.cat([output_dict['val_auroc'].unsqueeze(0) for output_dict in outputs])
-        val_auprcs = torch.cat([output_dict['val_auprc'].unsqueeze(0) for output_dict in outputs])
+        # val_aurocs = torch.cat([output_dict['val_auroc'].unsqueeze(0) for output_dict in outputs])
+        # val_auprcs = torch.cat([output_dict['val_auprc'].unsqueeze(0) for output_dict in outputs])
 
         # Concatenate scores over all devices (e.g. Rank 0 | ... | Rank N) - Warning: Memory Intensive
         val_accs = torch.cat([val_acc for val_acc in self.all_gather(val_accs)])
         val_precs = torch.cat([val_prec for val_prec in self.all_gather(val_precs)])
         val_recalls = torch.cat([val_recall for val_recall in self.all_gather(val_recalls)])
         val_f1s = torch.cat([val_f1 for val_f1 in self.all_gather(val_f1s)])
-        val_aurocs = torch.cat([val_auroc for val_auroc in self.all_gather(val_aurocs)])
-        val_auprcs = torch.cat([val_auprc for val_auprc in self.all_gather(val_auprcs)])
+        # val_aurocs = torch.cat([val_auroc for val_auroc in self.all_gather(val_aurocs)])
+        # val_auprcs = torch.cat([val_auprc for val_auprc in self.all_gather(val_auprcs)])
 
         # Reset validation TorchMetrics for all devices
         self.val_acc.reset()
         self.val_prec.reset()
         self.val_recall.reset()
         self.val_f1.reset()
-        self.val_auroc.reset()
-        self.val_auprc.reset()
+        # self.val_auroc.reset()
+        # self.val_auprc.reset()
 
         # Log metric(s) aggregated from all ranks
         self.log('med_val_acc', torch.median(val_accs), batch_size=self.batch_size)  # Log MedAccuracy of an epoch
         self.log('med_val_prec', torch.median(val_precs), batch_size=self.batch_size)  # Log MedPrecision of an epoch
         self.log('med_val_recall', torch.median(val_recalls), batch_size=self.batch_size)  # Log MedRecall of an epoch
         self.log('med_val_f1', torch.median(val_f1s), batch_size=self.batch_size)  # Log MedF1 of an epoch
-        self.log('med_val_auroc', torch.median(val_aurocs))  # Log MedAUROC of an epoch
-        self.log('med_val_auprc', torch.median(val_auprcs))  # Log epoch MedAveragePrecision
+        # self.log('med_val_auroc', torch.median(val_aurocs))  # Log MedAUROC of an epoch
+        # self.log('med_val_auprc', torch.median(val_auprcs))  # Log epoch MedAveragePrecision
 
     def test_step(self, batch, batch_idx):
         """Lightning calls this inside the testing loop."""
@@ -829,8 +829,8 @@ class LitGINI(pl.LightningModule):
         test_prec = self.test_prec(preds_rounded, labels)[1]  # Calculate Precision of a single complex
         test_recall = self.test_recall(preds_rounded, labels)[1]  # Calculate Recall of a single complex
         test_f1 = self.test_f1(preds_rounded, labels)[1]  # Calculate F1 score of a single complex
-        test_auroc = self.test_auroc(preds, labels)[1]  # Calculate AUROC of a complex
-        test_auprc = self.test_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
+        # test_auroc = self.test_auroc(preds, labels)[1]  # Calculate AUROC of a complex
+        # test_auprc = self.test_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
 
         # Manually evaluate test performance by collecting all predicted and ground-truth interaction tensors
         test_preds = preds.detach()
@@ -858,8 +858,8 @@ class LitGINI(pl.LightningModule):
             'test_prec': test_prec,
             'test_recall': test_recall,
             'test_f1': test_f1,
-            'test_auroc': test_auroc,
-            'test_auprc': test_auprc,
+            # 'test_auroc': test_auroc,
+            # 'test_auprc': test_auprc,
             'test_preds': test_preds,
             'test_preds_rounded': test_preds_rounded,
             'test_labels': test_labels,
@@ -879,16 +879,16 @@ class LitGINI(pl.LightningModule):
         test_precs = torch.cat([output_dict['test_prec'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
         test_recalls = torch.cat([output_dict['test_recall'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
         test_f1s = torch.cat([output_dict['test_f1'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
-        test_aurocs = torch.cat([output_dict['test_auroc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
-        test_auprcs = torch.cat([output_dict['test_auprc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
+        # test_aurocs = torch.cat([output_dict['test_auroc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
+        # test_auprcs = torch.cat([output_dict['test_auprc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
 
         # Concatenate scores over all devices (e.g. Rank 0 | ... | Rank N) - Warning: Memory Intensive
         test_accs = torch.cat([test_acc for test_acc in self.all_gather(test_accs)])
         test_precs = torch.cat([test_prec for test_prec in self.all_gather(test_precs)])
         test_recalls = torch.cat([test_recall for test_recall in self.all_gather(test_recalls)])
         test_f1s = torch.cat([test_f1 for test_f1 in self.all_gather(test_f1s)])
-        test_aurocs = torch.cat([test_auroc for test_auroc in self.all_gather(test_aurocs)])
-        test_auprcs = torch.cat([test_auprc for test_auprc in self.all_gather(test_auprcs)])
+        # test_aurocs = torch.cat([test_auroc for test_auroc in self.all_gather(test_aurocs)])
+        # test_auprcs = torch.cat([test_auprc for test_auprc in self.all_gather(test_auprcs)])
 
         if self.use_wandb_logger:
             test_preds = [wandb.Image(output_dict['test_preds']) for output_dict in outputs]  # Convert to image
@@ -925,16 +925,16 @@ class LitGINI(pl.LightningModule):
         self.test_prec.reset()
         self.test_recall.reset()
         self.test_f1.reset()
-        self.test_auroc.reset()
-        self.test_auprc.reset()
+        # self.test_auroc.reset()
+        # self.test_auprc.reset()
 
         # Log metric(s) aggregated from all ranks
         self.log('med_test_acc', torch.median(test_accs), batch_size=self.batch_size)  # Log MedAccuracy of an epoch
         self.log('med_test_prec', torch.median(test_precs), batch_size=self.batch_size)  # Log MedPrecision of an epoch
         self.log('med_test_recall', torch.median(test_recalls), batch_size=self.batch_size)  # Log MedRecall of an epoch
         self.log('med_test_f1', torch.median(test_f1s), batch_size=self.batch_size)  # Log MedF1 of an epoch
-        self.log('med_test_auroc', torch.median(test_aurocs))  # Log MedAUROC of an epoch
-        self.log('med_test_auprc', torch.median(test_auprcs))  # Log epoch MedAveragePrecision
+        # self.log('med_test_auroc', torch.median(test_aurocs))  # Log MedAUROC of an epoch
+        # self.log('med_test_auprc', torch.median(test_auprcs))  # Log epoch MedAveragePrecision
 
         # Log test predictions with their ground-truth interaction tensors to WandB for visual inspection
         if self.use_wandb_logger:
