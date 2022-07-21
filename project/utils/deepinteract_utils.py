@@ -1078,7 +1078,7 @@ def collect_args():
     parser.add_argument('--profiler_method', type=str, default=None, help='PL profiler to use (e.g. simple)')
     parser.add_argument('--ckpt_dir', type=str, default=f'{os.path.join(os.getcwd(), "checkpoints")}',
                         help='Directory in which to save checkpoints')
-    parser.add_argument('--ckpt_name', type=str, default='GraphormerModel0', help='Filename of best checkpoint')
+    parser.add_argument('--ckpt_name', type=str, default='GraphormerModel1', help='Filename of best checkpoint')
     parser.add_argument('--min_delta', type=float, default=5e-6, help='Minimum percentage of change required to'
                                                                       ' "metric_to_track" before early stopping'
                                                                       ' after surpassing patience')

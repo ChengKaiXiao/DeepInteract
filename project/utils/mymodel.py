@@ -382,7 +382,7 @@ class LitGINI(pl.LightningModule):
     def __init__(self, num_node_input_feats: int, num_edge_input_feats: int, gnn_activ_fn=nn.SiLU(),
                  num_classes=2, max_num_graph_nodes=NODE_COUNT_LIMIT, max_num_residues=RESIDUE_COUNT_LIMIT,
                  testing_with_casp_capri=False, training_with_db5=False, pos_prob_threshold=0.5, 
-                 num_gnn_layers=2, num_gnn_hidden_channels=512,
+                 num_gnn_hidden_channels=512,
                  num_gnn_attention_heads=32, knn=20, interact_module_type='dil_resnet', num_interact_layers=14,
                  num_interact_hidden_channels=128, use_interact_attention=False, num_interact_attention_heads=4,
                  num_epochs=50, pn_ratio=0.1, dropout_rate=0.2, metric_to_track='val_ce',
@@ -403,7 +403,6 @@ class LitGINI(pl.LightningModule):
         self.pos_prob_threshold = pos_prob_threshold
 
         # GNN module's keyword arguments provided via the command line
-        self.num_gnn_layers = num_gnn_layers
         self.num_gnn_hidden_channels = num_gnn_hidden_channels
         self.num_gnn_attention_heads = num_gnn_attention_heads
         self.nbrhd_size = knn
