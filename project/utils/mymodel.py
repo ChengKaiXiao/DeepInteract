@@ -975,9 +975,9 @@ class LitGINI(pl.LightningModule):
         # -----------------
         # Model arguments
         # -----------------
-        parser.add_argument('--num_gnn_hidden_channels', type=int, default=512,
+        parser.add_argument('--num_gnn_hidden_channels', type=int, default=1024,
                             help='Dimensionality of GNN filters (for nodes and edges alike after embedding)')
-        parser.add_argument('--num_gnn_attention_heads', type=int, default=32,
+        parser.add_argument('--num_gnn_attention_heads', type=int, default=64,
                             help='How many multi-head GNN attention blocks to run in parallel')
         parser.add_argument('--interact_module_type', type=str, default='dil_resnet',
                             help='Which type of dense prediction interaction module to use'
