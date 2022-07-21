@@ -158,10 +158,10 @@ def main(args):
         callbacks.append(lr_monitor_callback)
     trainer.callbacks = callbacks
 
-    # # ------------
-    # # Restore
-    # # ------------
-    # # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
+    # ------------
+    # Restore
+    # ------------
+    # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
     # if use_wandb_logger and args.ckpt_name != '' and not os.path.exists(ckpt_path):
     #     checkpoint_reference = f'{args.entity}/{args.project_name}/model-{args.run_id}:best'
     #     artifact = trainer.logger.experiment.use_artifact(checkpoint_reference, type='model')
@@ -177,17 +177,6 @@ def main(args):
     # -------------
     # Train with the provided model and DataModule
     trainer.fit(model=model, datamodule=picp_data_module)
-
-    def get_n_params(model):
-        pp=0
-        for p in list(model.parameters()):
-            nn=1
-            for s in list(p.size()):
-                nn = nn*s
-            pp += nn
-        return pp
-
-    print(get_n_params(model))
 
     # -------------
     # Testing
@@ -227,11 +216,6 @@ if __name__ == '__main__':
     args.stochastic_weight_avg = args.stc_weight_avg
     args.deterministic = True  # Make LightningModule's training reproducible
 
-    # # Set plugins for Lightning
-    # args.plugins = [
-    #     # 'ddp_sharded',  # For sharded model training (to reduce GPU requirements)
-    #     DDPPlugin(find_unused_parameters=False)
-    # ]
 
     # Finalize all arguments as necessary
     args = process_args(args)

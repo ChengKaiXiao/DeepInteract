@@ -20,7 +20,6 @@ from project.utils.deepinteract_constants import FEATURE_INDICES, RESIDUE_COUNT_
 from project.utils.deepinteract_utils import construct_interact_tensor, glorot_orthogonal, get_geo_feats_from_edges, \
     construct_subsequenced_interact_tensors, insert_interact_tensor_logits, \
     remove_padding, remove_subsequenced_input_padding, calculate_top_k_prec, calculate_top_k_recall, extract_object
-from project.utils.graph_utils import src_dot_dst, scaling, imp_exp_attn, out_edge_features, exp
 from project.utils.vision_modules import DeepLabV3Plus
 
 from project.utils.graphormer3D import Graphormer3Dmodule, get_arguments
@@ -382,12 +381,12 @@ class LitGINI(pl.LightningModule):
 
     def __init__(self, num_node_input_feats: int, num_edge_input_feats: int, gnn_activ_fn=nn.SiLU(),
                  num_classes=2, max_num_graph_nodes=NODE_COUNT_LIMIT, max_num_residues=RESIDUE_COUNT_LIMIT,
-                 testing_with_casp_capri=False, training_with_db5=False, pos_prob_threshold=0.5,
-                 gnn_layer_type='geotran', num_gnn_layers=2, num_gnn_hidden_channels=128,
-                 num_gnn_attention_heads=4, knn=20, interact_module_type='dil_resnet', num_interact_layers=14,
+                 testing_with_casp_capri=False, training_with_db5=False, pos_prob_threshold=0.5, 
+                 num_gnn_layers=2, num_gnn_hidden_channels=512,
+                 num_gnn_attention_heads=32, knn=20, interact_module_type='dil_resnet', num_interact_layers=14,
                  num_interact_hidden_channels=128, use_interact_attention=False, num_interact_attention_heads=4,
-                 disable_geometric_mode=False, num_epochs=50, pn_ratio=0.1, dropout_rate=0.2, metric_to_track='val_ce',
-                 weight_decay=1e-2, batch_size=1, lr=1e-3, pad=False, viz_every_n_epochs=1, use_wandb_logger=True,
+                 num_epochs=50, pn_ratio=0.1, dropout_rate=0.2, metric_to_track='val_ce',
+                 weight_decay=1e-2, batch_size=1, lr=1e-3, pad=False, use_wandb_logger=True,
                  weight_classes=False, fine_tune=False, ckpt_path=None):
         """Initialize all the parameters for a LitGINI module."""
         super().__init__()
@@ -404,7 +403,6 @@ class LitGINI(pl.LightningModule):
         self.pos_prob_threshold = pos_prob_threshold
 
         # GNN module's keyword arguments provided via the command line
-        self.gnn_layer_type = gnn_layer_type
         self.num_gnn_layers = num_gnn_layers
         self.num_gnn_hidden_channels = num_gnn_hidden_channels
         self.num_gnn_attention_heads = num_gnn_attention_heads
@@ -416,7 +414,6 @@ class LitGINI(pl.LightningModule):
         self.num_interact_hidden_channels = num_interact_hidden_channels
         self.use_interact_attention = use_interact_attention
         self.num_interact_attention_heads = num_interact_attention_heads
-        self.disable_geometric_mode = disable_geometric_mode
 
         # Derive shortcut booleans for convenient future reference
         self.using_dil_resnet = self.interact_module_type.lower() == 'dil_resnet'
@@ -431,18 +428,14 @@ class LitGINI(pl.LightningModule):
         self.batch_size = batch_size
         self.lr = lr
         self.pad = pad
-        self.viz_every_n_epochs = viz_every_n_epochs  # Visualize model predictions every 'n' epochs
         self.use_wandb_logger = use_wandb_logger  # Whether to use WandB as the primary means of logging
         self.weight_classes = weight_classes  # Whether to use class weighting in our training Cross Entropy
         self.fine_tune = fine_tune  # Whether to fine-tune a trained LitGINI on a new dataset
         self.ckpt_path = ckpt_path  # A path to a trained LitGINI checkpoint given if fine-tuning
 
-        # Set up GNN node and edge embedding layers (if requested)
-        self.using_gcn = self.gnn_layer_type.lower() == 'gcn'
-        self.using_node_embedding = self.num_node_input_feats != self.num_gnn_hidden_channels
-        self.node_in_embedding = nn.Linear(self.num_node_input_feats, self.num_gnn_hidden_channels, bias=False) \
-            if self.using_node_embedding \
-            else nn.Identity()
+        # Set up GNN node and edge embedding layers
+        self.node_embedding = nn.Linear(self.num_node_input_feats, self.num_gnn_hidden_channels, bias=False)
+        self.embed_reduction = nn.Linear(self.num_gnn_hidden_channels, self.num_interact_hidden_channels, bias=False)
 
         # Assemble the layers of the network
         if self.fine_tune:
@@ -469,26 +462,19 @@ class LitGINI(pl.LightningModule):
         self.val_acc = tm.Accuracy(num_classes=self.num_classes, average=None)
         self.val_prec = tm.Precision(num_classes=self.num_classes, average=None)
         self.val_recall = tm.Recall(num_classes=self.num_classes, average=None)
-        # self.val_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
-        # self.val_auprc = tm.AveragePrecision(num_classes=self.num_classes)
+        self.val_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
+        self.val_auprc = tm.AveragePrecision(num_classes=self.num_classes)
         self.val_f1 = tm.F1(num_classes=self.num_classes, average=None)
 
         self.test_acc = tm.Accuracy(num_classes=self.num_classes, average=None)
         self.test_prec = tm.Precision(num_classes=self.num_classes, average=None)
         self.test_recall = tm.Recall(num_classes=self.num_classes, average=None)
-        # self.test_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
-        # self.test_auprc = tm.AveragePrecision(num_classes=self.num_classes)
+        self.test_auroc = tm.AUROC(num_classes=self.num_classes, average=None)
+        self.test_auprc = tm.AveragePrecision(num_classes=self.num_classes)
         self.test_f1 = tm.F1(num_classes=self.num_classes, average=None)
 
         # Reset learnable parameters and log hyperparameters
-        self.reset_parameters()
         self.save_hyperparameters(ignore=['gnn_activ_fn'])
-
-    def reset_parameters(self):
-        """Reinitialize learnable parameters."""
-        if self.using_node_embedding:
-            # Reinitialize node input embedding
-            glorot_orthogonal(self.node_in_embedding.weight, scale=2.0)
 
     def build_gnn_module(self):
         """Define all layers for the chosen GNN module."""
@@ -534,11 +520,13 @@ class LitGINI(pl.LightningModule):
     def gnn_forward(self, graph: dgl.DGLGraph):
         """Make a forward pass through a single GNN module."""
         # Embed input features a priori
-        if self.using_node_embedding:
-            node_feats = self.node_in_embedding(graph.ndata['f']).squeeze()
-            # node_feats = graph.ndata['f'] 
+        node_feats = self.node_embedding(graph.ndata['f']).squeeze()
+
         for layer in self.gnn_module:
             node_feats = layer(node_feats, graph.ndata['x'])  # Geometric Transformers can handle their own depth
+
+        # reduce embedding dimensions
+        node_feats = self.embed_reduction(node_feats)
 
         return [node_feats]
 
@@ -668,85 +656,6 @@ class LitGINI(pl.LightningModule):
         # Log training step metric(s)
         self.log(f'train_ce', loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=self.batch_size)
 
-        # # Manually evaluate training performance on a held-out validation dataset purely for visualizing model dynamics
-        # is_viz_epoch = self.current_epoch % self.viz_every_n_epochs == 0
-        # time_to_visualize_preds = is_viz_epoch and batch_idx == 0
-        # if time_to_visualize_preds:  # Visualize a single training and validation model prediction every 'n' epochs
-        #     self.train(mode=False)  # Set the module to evaluation mode temporarily
-        #     with torch.no_grad():
-        #         # ------------
-        #         # Train Sample
-        #         # ------------
-        #         # Reuse existing logits for the first training sample
-        #         train_logits = logits_list[0].squeeze()
-        #         train_len_1, train_len_2 = train_logits.shape[1:]
-
-        #         # Construct the predicted M x N interaction tensor and its corresponding labels
-        #         train_preds = torch.softmax(torch.flatten(train_logits, start_dim=1).transpose(1, 0), dim=1)
-        #         train_preds_rounded = train_preds.clone()
-        #         train_preds_rounded[:, 0] = (train_preds[:, 0] >= (1 - self.pos_prob_threshold)).float()
-        #         train_preds_rounded[:, 1] = (train_preds[:, 1] >= self.pos_prob_threshold).float()
-        #         train_preds = train_preds[:, 1].reshape(train_len_1, train_len_2).cpu().numpy()
-        #         train_preds_rounded = train_preds_rounded[:, 1].reshape(train_len_1, train_len_2).cpu().numpy()
-        #         train_labels = examples_list[0][:, 2].reshape(train_len_1, train_len_2).float().cpu().numpy()
-
-        #         # ------------
-        #         # Val Sample
-        #         # ------------
-        #         # Make a forward pass through the network for a held-out validation complex for visualization
-        #         val_graph1, val_graph2, val_examples_list = val_batch[0], val_batch[1], val_batch[2]
-
-        #         # Forward propagate with network layers without accumulating any gradients
-        #         val_logits_list = self.shared_step(val_graph1, val_graph2)
-        #         val_logits = val_logits_list[0].squeeze()
-        #         val_len_1, val_len_2 = val_logits.shape[1:]
-
-        #         # Construct the predicted M x N interaction tensor and its corresponding labels
-        #         val_preds = torch.softmax(torch.flatten(val_logits, start_dim=1).transpose(1, 0), dim=1)
-        #         val_preds_rounded = val_preds.clone()
-        #         val_preds_rounded[:, 0] = (val_preds[:, 0] >= (1 - self.pos_prob_threshold)).float()
-        #         val_preds_rounded[:, 1] = (val_preds[:, 1] >= self.pos_prob_threshold).float()
-        #         val_preds = val_preds[:, 1].reshape(val_len_1, val_len_2).cpu().numpy()
-        #         val_preds_rounded = val_preds_rounded[:, 1].reshape(val_len_1, val_len_2).cpu().numpy()
-        #         val_labels = val_examples_list[:, 2].reshape(val_len_1, val_len_2).float().cpu().numpy()
-
-        #         # ------------
-        #         # Visualize
-        #         # ------------
-        #         if self.use_wandb_logger:
-        #             # Convert predictions and labels to grayscale images
-        #             viz_preds = [wandb.Image(viz) for viz in [train_preds, val_preds]]
-        #             viz_preds_rounded = [wandb.Image(viz) for viz in [train_preds_rounded, val_preds_rounded]]
-        #             viz_labels = [wandb.Image(viz) for viz in [train_labels, val_labels]]
-
-        #             # Log validation predictions with their ground-truth interaction tensors to WandB for inspection
-        #             self.trainer.logger.experiment.log({'sample_preds': viz_preds})
-        #             self.trainer.logger.experiment.log({'sample_preds_rounded': viz_preds_rounded})
-        #             self.trainer.logger.experiment.log({'sample_labels': viz_labels})
-
-        #         else:  # Assume we are instead using the TensorBoardLogger
-        #             self.logger.experiment.add_image(
-        #                 'sample_train_preds', train_preds, self.global_step, dataformats='HW'
-        #             )
-        #             self.logger.experiment.add_image(
-        #                 'sample_val_preds', val_preds, self.global_step, dataformats='HW'
-        #             )
-        #             self.logger.experiment.add_image(
-        #                 'sample_train_preds_rounded', train_preds_rounded, self.global_step, dataformats='HW'
-        #             )
-        #             self.logger.experiment.add_image(
-        #                 'sample_val_preds_rounded', val_preds_rounded, self.global_step, dataformats='HW'
-        #             )
-        #             self.logger.experiment.add_image(
-        #                 'sample_train_labels', train_labels, self.global_step, dataformats='HW'
-        #             )
-        #             self.logger.experiment.add_image(
-        #                 'sample_val_labels', val_labels, self.global_step, dataformats='HW'
-        #             )
-
-        #     # Set the current LightningModule back to training mode
-        #     self.train(mode=True)
-
         return {
             'loss': loss,
             'train_acc': train_acc,
@@ -822,8 +731,8 @@ class LitGINI(pl.LightningModule):
         val_prec = self.val_prec(preds_rounded, labels)[1]  # Calculate Precision of a single complex
         val_recall = self.val_recall(preds_rounded, labels)[1]  # Calculate Recall of a single complex
         val_f1 = self.val_f1(preds_rounded, labels)[1]  # Calculate F1 score of a single complex
-        # val_auroc = self.val_auroc(preds, labels)[1]  # Calculate AUROC of a complex
-        # val_auprc = self.val_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
+        val_auroc = self.val_auroc(preds, labels)[1]  # Calculate AUROC of a complex
+        val_auprc = self.val_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
 
         # Log validation step metric(s)
         self.log(f'val_ce', loss, sync_dist=True, batch_size=self.batch_size)
@@ -841,8 +750,8 @@ class LitGINI(pl.LightningModule):
             'val_prec': val_prec,
             'val_recall': val_recall,
             'val_f1': val_f1,
-            # 'val_auroc': val_auroc,
-            # 'val_auprc': val_auprc
+            'val_auroc': val_auroc,
+            'val_auprc': val_auprc
         }
 
     def validation_epoch_end(self, outputs: pl.utilities.types.EPOCH_OUTPUT) -> None:
@@ -852,32 +761,32 @@ class LitGINI(pl.LightningModule):
         val_precs = torch.cat([output_dict['val_prec'].unsqueeze(0) for output_dict in outputs])
         val_recalls = torch.cat([output_dict['val_recall'].unsqueeze(0) for output_dict in outputs])
         val_f1s = torch.cat([output_dict['val_f1'].unsqueeze(0) for output_dict in outputs])
-        # val_aurocs = torch.cat([output_dict['val_auroc'].unsqueeze(0) for output_dict in outputs])
-        # val_auprcs = torch.cat([output_dict['val_auprc'].unsqueeze(0) for output_dict in outputs])
+        val_aurocs = torch.cat([output_dict['val_auroc'].unsqueeze(0) for output_dict in outputs])
+        val_auprcs = torch.cat([output_dict['val_auprc'].unsqueeze(0) for output_dict in outputs])
 
         # Concatenate scores over all devices (e.g. Rank 0 | ... | Rank N) - Warning: Memory Intensive
         val_accs = torch.cat([val_acc for val_acc in self.all_gather(val_accs)])
         val_precs = torch.cat([val_prec for val_prec in self.all_gather(val_precs)])
         val_recalls = torch.cat([val_recall for val_recall in self.all_gather(val_recalls)])
         val_f1s = torch.cat([val_f1 for val_f1 in self.all_gather(val_f1s)])
-        # val_aurocs = torch.cat([val_auroc for val_auroc in self.all_gather(val_aurocs)])
-        # val_auprcs = torch.cat([val_auprc for val_auprc in self.all_gather(val_auprcs)])
+        val_aurocs = torch.cat([val_auroc for val_auroc in self.all_gather(val_aurocs)])
+        val_auprcs = torch.cat([val_auprc for val_auprc in self.all_gather(val_auprcs)])
 
         # Reset validation TorchMetrics for all devices
         self.val_acc.reset()
         self.val_prec.reset()
         self.val_recall.reset()
         self.val_f1.reset()
-        # self.val_auroc.reset()
-        # self.val_auprc.reset()
+        self.val_auroc.reset()
+        self.val_auprc.reset()
 
         # Log metric(s) aggregated from all ranks
         self.log('med_val_acc', torch.median(val_accs), batch_size=self.batch_size)  # Log MedAccuracy of an epoch
         self.log('med_val_prec', torch.median(val_precs), batch_size=self.batch_size)  # Log MedPrecision of an epoch
         self.log('med_val_recall', torch.median(val_recalls), batch_size=self.batch_size)  # Log MedRecall of an epoch
         self.log('med_val_f1', torch.median(val_f1s), batch_size=self.batch_size)  # Log MedF1 of an epoch
-        # self.log('med_val_auroc', torch.median(val_aurocs))  # Log MedAUROC of an epoch
-        # self.log('med_val_auprc', torch.median(val_auprcs))  # Log epoch MedAveragePrecision
+        self.log('med_val_auroc', torch.median(val_aurocs))  # Log MedAUROC of an epoch
+        self.log('med_val_auprc', torch.median(val_auprcs))  # Log epoch MedAveragePrecision
 
     def test_step(self, batch, batch_idx):
         """Lightning calls this inside the testing loop."""
@@ -921,8 +830,8 @@ class LitGINI(pl.LightningModule):
         test_prec = self.test_prec(preds_rounded, labels)[1]  # Calculate Precision of a single complex
         test_recall = self.test_recall(preds_rounded, labels)[1]  # Calculate Recall of a single complex
         test_f1 = self.test_f1(preds_rounded, labels)[1]  # Calculate F1 score of a single complex
-        # test_auroc = self.test_auroc(preds, labels)[1]  # Calculate AUROC of a complex
-        # test_auprc = self.test_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
+        test_auroc = self.test_auroc(preds, labels)[1]  # Calculate AUROC of a complex
+        test_auprc = self.test_auprc(preds, labels)[1]  # Calculate AveragePrecision (i.e. AUPRC) of a complex
 
         # Manually evaluate test performance by collecting all predicted and ground-truth interaction tensors
         test_preds = preds.detach()
@@ -950,8 +859,8 @@ class LitGINI(pl.LightningModule):
             'test_prec': test_prec,
             'test_recall': test_recall,
             'test_f1': test_f1,
-            # 'test_auroc': test_auroc,
-            # 'test_auprc': test_auprc,
+            'test_auroc': test_auroc,
+            'test_auprc': test_auprc,
             'test_preds': test_preds,
             'test_preds_rounded': test_preds_rounded,
             'test_labels': test_labels,
@@ -971,16 +880,16 @@ class LitGINI(pl.LightningModule):
         test_precs = torch.cat([output_dict['test_prec'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
         test_recalls = torch.cat([output_dict['test_recall'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
         test_f1s = torch.cat([output_dict['test_f1'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
-        # test_aurocs = torch.cat([output_dict['test_auroc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
-        # test_auprcs = torch.cat([output_dict['test_auprc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
+        test_aurocs = torch.cat([output_dict['test_auroc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
+        test_auprcs = torch.cat([output_dict['test_auprc'].unsqueeze(0) for output_dict in outputs]).unsqueeze(1)
 
         # Concatenate scores over all devices (e.g. Rank 0 | ... | Rank N) - Warning: Memory Intensive
         test_accs = torch.cat([test_acc for test_acc in self.all_gather(test_accs)])
         test_precs = torch.cat([test_prec for test_prec in self.all_gather(test_precs)])
         test_recalls = torch.cat([test_recall for test_recall in self.all_gather(test_recalls)])
         test_f1s = torch.cat([test_f1 for test_f1 in self.all_gather(test_f1s)])
-        # test_aurocs = torch.cat([test_auroc for test_auroc in self.all_gather(test_aurocs)])
-        # test_auprcs = torch.cat([test_auprc for test_auprc in self.all_gather(test_auprcs)])
+        test_aurocs = torch.cat([test_auroc for test_auroc in self.all_gather(test_aurocs)])
+        test_auprcs = torch.cat([test_auprc for test_auprc in self.all_gather(test_auprcs)])
 
         if self.use_wandb_logger:
             test_preds = [wandb.Image(output_dict['test_preds']) for output_dict in outputs]  # Convert to image
@@ -1017,16 +926,16 @@ class LitGINI(pl.LightningModule):
         self.test_prec.reset()
         self.test_recall.reset()
         self.test_f1.reset()
-        # self.test_auroc.reset()
-        # self.test_auprc.reset()
+        self.test_auroc.reset()
+        self.test_auprc.reset()
 
         # Log metric(s) aggregated from all ranks
         self.log('med_test_acc', torch.median(test_accs), batch_size=self.batch_size)  # Log MedAccuracy of an epoch
         self.log('med_test_prec', torch.median(test_precs), batch_size=self.batch_size)  # Log MedPrecision of an epoch
         self.log('med_test_recall', torch.median(test_recalls), batch_size=self.batch_size)  # Log MedRecall of an epoch
         self.log('med_test_f1', torch.median(test_f1s), batch_size=self.batch_size)  # Log MedF1 of an epoch
-        # self.log('med_test_auroc', torch.median(test_aurocs))  # Log MedAUROC of an epoch
-        # self.log('med_test_auprc', torch.median(test_auprcs))  # Log epoch MedAveragePrecision
+        self.log('med_test_auroc', torch.median(test_aurocs))  # Log MedAUROC of an epoch
+        self.log('med_test_auprc', torch.median(test_auprcs))  # Log epoch MedAveragePrecision
 
         # Log test predictions with their ground-truth interaction tensors to WandB for visual inspection
         if self.use_wandb_logger:
@@ -1067,14 +976,9 @@ class LitGINI(pl.LightningModule):
         # -----------------
         # Model arguments
         # -----------------
-        parser.add_argument('--gnn_layer_type', type=str, default='geotran',
-                            help='Which type of GNN layer to use'
-                                 ' (i.e., gcn for GraphConv,'
-                                 ' geotran w/ --disable_geometric_mode for DGLGraphTransformer,'
-                                 ' or geotran for DGLGeometricTransformer)')
-        parser.add_argument('--num_gnn_hidden_channels', type=int, default=128,
+        parser.add_argument('--num_gnn_hidden_channels', type=int, default=512,
                             help='Dimensionality of GNN filters (for nodes and edges alike after embedding)')
-        parser.add_argument('--num_gnn_attention_heads', type=int, default=4,
+        parser.add_argument('--num_gnn_attention_heads', type=int, default=32,
                             help='How many multi-head GNN attention blocks to run in parallel')
         parser.add_argument('--interact_module_type', type=str, default='dil_resnet',
                             help='Which type of dense prediction interaction module to use'
@@ -1085,10 +989,6 @@ class LitGINI(pl.LightningModule):
                             help='Whether to employ attention in, for example, a Dilated ResNet')
         parser.add_argument('--num_interact_attention_heads', type=int, default=4,
                             help='How many multi-head interact attention blocks to use in parallel')
-        parser.add_argument('--disable_geometric_mode', action='store_true', dest='disable_geometric_mode',
-                            help='Whether to convert the Geometric Transformer into the original Graph Transformer')
-        parser.add_argument('--viz_every_n_epochs', type=int, default=1,
-                            help='By how many epochs to space out model prediction visualizations during training')
         parser.add_argument('--weight_classes', action='store_true', dest='weight_classes',
                             help='Whether to use class weighting in our training Cross Entropy')
         parser.add_argument('--fine_tune', action='store_true', dest='fine_tune',
@@ -1097,4 +997,5 @@ class LitGINI(pl.LightningModule):
                             help='A filepath to the left input PDB chain')
         parser.add_argument('--right_pdb_filepath', type=str, default='test_data/4heq_r.pdb',
                             help='A filepath to the right input PDB chain')
+
         return parser
