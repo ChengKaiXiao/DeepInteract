@@ -113,7 +113,7 @@ class PICPDGLDataModule(LightningDataModule):
         # Curate data loader for training data
         train_dataloader = DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True,
                                       num_workers=self.num_dataloader_workers, collate_fn=self.collate_fn,
-                                      pin_memory=True, drop_last=True)  # drop_last=True to keep loss smooth each epoch
+                                      pin_memory=False, drop_last=True)  # drop_last=True to keep loss smooth each epoch
 
         # Curate dataset and data loader for validation data to be used for model inspection during training
         val_dataset = self.dips_val_viz
@@ -133,7 +133,7 @@ class PICPDGLDataModule(LightningDataModule):
             val_batch_size = self.batch_size
         return DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False,
                           num_workers=self.num_dataloader_workers, collate_fn=self.collate_fn,
-                          pin_memory=True, drop_last=True)
+                          pin_memory=False, drop_last=True)
 
     def test_dataloader(self) -> DataLoader:
         if self.training_with_db5:
@@ -146,4 +146,4 @@ class PICPDGLDataModule(LightningDataModule):
             test_dataset = self.dips_test
             test_batch_size = 1
         return DataLoader(test_dataset, batch_size=test_batch_size, shuffle=False,
-                          num_workers=self.num_dataloader_workers, collate_fn=self.collate_fn, pin_memory=True)
+                          num_workers=self.num_dataloader_workers, collate_fn=self.collate_fn, pin_memory=False)
