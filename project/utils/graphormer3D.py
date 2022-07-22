@@ -173,30 +173,6 @@ class GaussianLayerNoEdge(nn.Module):
         return gaussian(x.float(), mean, std).type_as(self.means.weight)
 
 
-
-
-# class RBF(nn.Module):
-#     def __init__(self, K, edge_types):
-#         super().__init__()
-#         self.K = K
-#         self.means = nn.parameter.Parameter(torch.empty(K))
-#         self.temps = nn.parameter.Parameter(torch.empty(K))
-#         self.mul: Callable[..., Tensor] = nn.Embedding(edge_types, 1)
-#         self.bias: Callable[..., Tensor] = nn.Embedding(edge_types, 1)
-#         nn.init.uniform_(self.means, 0, 3)
-#         nn.init.uniform_(self.temps, 0.1, 10)
-#         nn.init.constant_(self.bias.weight, 0)
-#         nn.init.constant_(self.mul.weight, 1)
-
-#     def forward(self, x: Tensor, edge_types):
-#         mul = self.mul(edge_types)
-#         bias = self.bias(edge_types)
-#         x = mul * x.unsqueeze(-1) + bias
-#         mean = self.means.float()
-#         temp = self.temps.float().abs()
-#         return ((x - mean).square() * (-temp)).exp().type_as(self.means)
-
-
 class NonLinear(nn.Module):
     def __init__(self, input, output_size, hidden=None):
         super(NonLinear, self).__init__()
@@ -215,18 +191,18 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="Architechture")
     parser.add_argument("--layers", type=int, default=4, metavar="L", help="num encoder layers")
     parser.add_argument("--blocks", type=int, default=12, metavar="L", help="num blocks")
-    parser.add_argument("--embed-dim", type=int, default=864, metavar="H", help="encoder embedding dimension")
+    parser.add_argument("--embed-dim", type=int, default=128, metavar="H", help="encoder embedding dimension")
     parser.add_argument(
         "--ffn-embed-dim",
         type=int,
-        default=864,
+        default=128,
         metavar="F",
         help="encoder embedding dimension for FFN",
     )
     parser.add_argument(
         "--attention-heads",
         type=int,
-        default=54,
+        default=8,
         metavar="A",
         help="num encoder attention heads",
     )

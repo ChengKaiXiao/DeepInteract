@@ -1035,7 +1035,7 @@ def collect_args():
     # Logging arguments
     # -----------------
     parser.add_argument('--logger_name', type=str, default='wandb', help='Which logger to use for experiments')
-    parser.add_argument('--experiment_name', type=str, default='Model_864_0', help='Logger experiment name')
+    parser.add_argument('--experiment_name', type=str, default='Model_128_0', help='Logger experiment name')
     parser.add_argument('--project_name', type=str, default='DeepInteract', help='Logger project name')
     parser.add_argument('--entity', type=str, default='lancgraphers', help='Logger entity (i.e. team) name')
     parser.add_argument('--run_id', type=str, default='', help='Logger run ID')
@@ -1073,12 +1073,12 @@ def collect_args():
     parser.add_argument('--num_gpus', type=int, default=-1, help='Number of GPUs to use (e.g. -1 = all available GPUs)')
     parser.add_argument('--auto_choose_gpus', action='store_true', dest='auto_choose_gpus', help='Auto-select GPUs')
     parser.add_argument('--num_compute_nodes', type=int, default=1, help='Number of compute nodes to use')
-    parser.add_argument('--gpu_precision', type=int, default=16, help='Bit size used during training (e.g. 16-bit)')
-    parser.add_argument('--num_workers', type=int, default=60, help='Number of CPU threads for loading data')
+    parser.add_argument('--gpu_precision', type=int, default=32, help='Bit size used during training (e.g. 16-bit)')
+    parser.add_argument('--num_workers', type=int, default=120, help='Number of CPU threads for loading data')
     parser.add_argument('--profiler_method', type=str, default=None, help='PL profiler to use (e.g. simple)')
     parser.add_argument('--ckpt_dir', type=str, default=f'{os.path.join(os.getcwd(), "checkpoints")}',
                         help='Directory in which to save checkpoints')
-    parser.add_argument('--ckpt_name', type=str, default='GraphormerModel1', help='Filename of best checkpoint')
+    parser.add_argument('--ckpt_name', type=str, default='GraphormerModel_128', help='Filename of best checkpoint')
     parser.add_argument('--min_delta', type=float, default=5e-6, help='Minimum percentage of change required to'
                                                                       ' "metric_to_track" before early stopping'
                                                                       ' after surpassing patience')

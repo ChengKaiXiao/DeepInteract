@@ -382,8 +382,8 @@ class LitGINI(pl.LightningModule):
     def __init__(self, num_node_input_feats: int, num_edge_input_feats: int, gnn_activ_fn=nn.SiLU(),
                  num_classes=2, max_num_graph_nodes=NODE_COUNT_LIMIT, max_num_residues=RESIDUE_COUNT_LIMIT,
                  testing_with_casp_capri=False, training_with_db5=False, pos_prob_threshold=0.5, 
-                 num_gnn_hidden_channels=512,
-                 num_gnn_attention_heads=32, knn=20, interact_module_type='dil_resnet', num_interact_layers=14,
+                 num_gnn_hidden_channels=128,
+                 num_gnn_attention_heads=8, knn=20, interact_module_type='dil_resnet', num_interact_layers=14,
                  num_interact_hidden_channels=128, use_interact_attention=False, num_interact_attention_heads=4,
                  num_epochs=50, pn_ratio=0.1, dropout_rate=0.2, metric_to_track='val_ce',
                  weight_decay=1e-2, batch_size=1, lr=1e-3, pad=False, use_wandb_logger=True,
@@ -434,7 +434,7 @@ class LitGINI(pl.LightningModule):
 
         # Set up GNN node and edge embedding layers
         self.node_embedding = nn.Linear(self.num_node_input_feats, self.num_gnn_hidden_channels, bias=False)
-        self.embed_reduction = nn.Linear(self.num_gnn_hidden_channels, self.num_interact_hidden_channels, bias=False)
+        #self.embed_reduction = nn.Linear(self.num_gnn_hidden_channels, self.num_interact_hidden_channels, bias=False)
 
         # Assemble the layers of the network
         if self.fine_tune:
@@ -525,7 +525,7 @@ class LitGINI(pl.LightningModule):
             node_feats = layer(node_feats, graph.ndata['x'])  # Geometric Transformers can handle their own depth
 
         # reduce embedding dimensions
-        node_feats = self.embed_reduction(node_feats)
+        # node_feats = self.embed_reduction(node_feats)
 
         return [node_feats]
 
@@ -975,9 +975,9 @@ class LitGINI(pl.LightningModule):
         # -----------------
         # Model arguments
         # -----------------
-        parser.add_argument('--num_gnn_hidden_channels', type=int, default=864,
+        parser.add_argument('--num_gnn_hidden_channels', type=int, default=128,
                             help='Dimensionality of GNN filters (for nodes and edges alike after embedding)')
-        parser.add_argument('--num_gnn_attention_heads', type=int, default=54,
+        parser.add_argument('--num_gnn_attention_heads', type=int, default=8,
                             help='How many multi-head GNN attention blocks to run in parallel')
         parser.add_argument('--interact_module_type', type=str, default='dil_resnet',
                             help='Which type of dense prediction interaction module to use'

@@ -14,6 +14,9 @@ from project.utils.deepinteract_utils import collect_args, process_args, constru
 # from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
 from pytorch_lightning.callbacks import TQDMProgressBar
 
+import torch
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 # -------------------------------------------------------------------------------------------------------------------------------------
 # Following code curated for DeepInteract (https://github.com/BioinfoMachineLearning/DeepInteract):
 # -------------------------------------------------------------------------------------------------------------------------------------
