@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 import torchmetrics as tm
 import wandb
-from dgl.nn.pytorch import GraphConv
 from torch.nn import functional as F
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
