@@ -1068,7 +1068,7 @@ def collect_args():
 
     # replace with strategy ddp
     parser.add_argument('--multi_gpu_backend', type=str, default='ddp', help='Multi-GPU backend for training')
-    parser.add_argument('--train_strategy', type=str, default='ddp', help='Training strategy')
+    parser.add_argument('--train_strategy', type=str, default='ddp_sharded', help='Training strategy')
 
     parser.add_argument('--num_gpus', type=int, default=-1, help='Number of GPUs to use (e.g. -1 = all available GPUs)')
     parser.add_argument('--auto_choose_gpus', action='store_true', dest='auto_choose_gpus', help='Auto-select GPUs')
