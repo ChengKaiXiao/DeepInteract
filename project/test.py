@@ -100,17 +100,6 @@ def main(args):
     
 
     # ------------
-    # Checkpoint
-    # ------------
-    if not args.fine_tune:
-        model = model.load_from_checkpoint(ckpt_path,
-                                           use_wandb_logger=use_wandb_logger,
-                                           batch_size=args.batch_size,
-                                           lr=args.lr,
-                                           weight_decay=args.weight_decay,
-                                           dropout_rate=args.dropout_rate) if ckpt_provided else model
-
-    # ------------
     # Trainer
     # ------------
     trainer = pl.Trainer.from_argparse_args(args)
