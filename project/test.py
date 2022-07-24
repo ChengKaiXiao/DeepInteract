@@ -38,8 +38,8 @@ def main(args):
                                          casp_capri_percent_to_use=args.casp_capri_percent_to_use,
                                          db5_percent_to_use=args.db5_percent_to_use,
                                          dips_percent_to_use=args.dips_percent_to_use,
-                                         training_with_db5=args.training_with_db5,
-                                         testing_with_casp_capri=True,
+                                         training_with_db5=True, #args.training_with_db5,
+                                         testing_with_casp_capri=False,
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
     picp_data_module.setup()
