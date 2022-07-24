@@ -3,16 +3,13 @@ import os
 from pathlib import Path
 
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import TQDMProgressBar
 import torch.nn as nn
-# from pytorch_lightning.plugins import DDPPlugin
 
 from project.datasets.PICP.picp_dgl_data_module import PICPDGLDataModule
 from project.utils.deepinteract_constants import NODE_COUNT_LIMIT, RESIDUE_COUNT_LIMIT
 from project.utils.mymodel import LitGINI
 from project.utils.deepinteract_utils import collect_args, process_args, construct_pl_logger
-
-# from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
-from pytorch_lightning.callbacks import TQDMProgressBar
 
 import torch
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -43,13 +40,6 @@ def main(args):
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
     picp_data_module.setup()
-
-    # ------------
-    # Fine-Tuning
-    # ------------
-    ckpt_path = os.path.join(args.ckpt_dir, args.ckpt_name)
-    ckpt_path_exists = os.path.exists(ckpt_path)
-    ckpt_provided = args.ckpt_name != '' and ckpt_path_exists
 
     # ------------
     # Model
@@ -88,7 +78,7 @@ def main(args):
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
                     fine_tune=dict_args['fine_tune'],
-                    ckpt_path=ckpt_path)
+                    ckpt_path=None)
     args.experiment_name = f'LitGINI-b{args.batch_size}-gl{args.num_gnn_layers}' \
                            f'-n{args.num_gnn_hidden_channels}' \
                            f'-e{args.num_gnn_hidden_channels}' \
@@ -158,12 +148,6 @@ def main(args):
                                         weight_decay=args.weight_decay)
 
     # -------------
-    # Training
-    # -------------
-    # Train with the provided model and DataModule
-    # trainer.fit(model=model, datamodule=picp_data_module)
-
-    # -------------
     # Testing
     # -------------
     trainer.test(model=model, datamodule=picp_data_module)
@@ -189,11 +173,9 @@ if __name__ == '__main__':
     args.max_time = {'hours': args.max_hours, 'minutes': args.max_minutes}
     args.max_epochs = args.num_epochs
     args.profiler = args.profiler_method
-    # args.accelerator = args.multi_gpu_backend
     # args.strategy = args.train_strategy
     args.auto_select_gpus = args.auto_choose_gpus
     args.gpus = args.num_gpus
-    # args.num_nodes = args.num_compute_nodes
     args.precision = args.gpu_precision
     args.accumulate_grad_batches = args.accum_grad_batches
     args.gradient_clip_val = args.grad_clip_val
