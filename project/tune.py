@@ -72,10 +72,10 @@ def main(args):
 
     # Pick model and supply it with a dictionary of arguments
     # Baseline Model - Geometry-Focused Inter-Graph Node Interaction (GINI)
-    model = LitGINI(num_node_input_feats=picp_data_module.dips_test.num_node_features,
-                    num_edge_input_feats=picp_data_module.dips_test.num_edge_features,
+    model = LitGINI(num_node_input_feats=113,
+                    num_edge_input_feats=27,
                     gnn_activ_fn=nn.SiLU(),
-                    num_classes=picp_data_module.dips_test.num_classes,
+                    num_classes=2,
                     max_num_graph_nodes=NODE_COUNT_LIMIT,
                     max_num_residues=RESIDUE_COUNT_LIMIT,
                     testing_with_casp_capri=dict_args['testing_with_casp_capri'],
