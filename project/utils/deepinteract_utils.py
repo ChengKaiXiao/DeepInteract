@@ -1073,7 +1073,7 @@ def collect_args():
     parser.add_argument('--num_gpus', type=int, default=-1, help='Number of GPUs to use (e.g. -1 = all available GPUs)')
     parser.add_argument('--auto_choose_gpus', action='store_true', dest='auto_choose_gpus', help='Auto-select GPUs')
     parser.add_argument('--num_compute_nodes', type=int, default=1, help='Number of compute nodes to use')
-    parser.add_argument('--gpu_precision', type=int, default=32, help='Bit size used during training (e.g. 16-bit)')
+    parser.add_argument('--gpu_precision', type=int, default=16, help='Bit size used during training (e.g. 16-bit)')
     parser.add_argument('--num_workers', type=int, default=14, help='Number of CPU threads for loading data')
     parser.add_argument('--profiler_method', type=str, default=None, help='PL profiler to use (e.g. simple)')
     parser.add_argument('--ckpt_dir', type=str, default=f'{os.path.join(os.getcwd(), "checkpoints")}',
