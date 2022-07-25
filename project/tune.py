@@ -156,7 +156,7 @@ def main(args):
     )
     # lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
 
-    progress_bar = TQDMProgressBar(refresh_rate=100)
+    progress_bar = TQDMProgressBar(refresh_rate=10)
     callbacks = [early_stop_callback, ckpt_callback, progress_bar]
     # if args.fine_tune:
     #     callbacks.append(lr_monitor_callback)
