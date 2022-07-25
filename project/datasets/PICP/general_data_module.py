@@ -94,13 +94,7 @@ class DB5GeneralDataModule(LightningDataModule):
                                       num_workers=self.num_dataloader_workers, collate_fn=self.collate_fn,
                                       pin_memory=False, drop_last=True)  # drop_last=True to keep loss smooth each epoch
 
-        # Curate dataset and data loader for validation data to be used for model inspection during training
-        val_dataset = self.dips_val_viz
-        val_dataloader = DataLoader(val_dataset, batch_size=1,
-                                    shuffle=False, num_workers=1,
-                                    collate_fn=self.collate_fn, drop_last=True)
-
-        return {'train_batch': train_dataloader, 'val_batch': val_dataloader}
+        return {'train_batch': train_dataloader}
 
     def val_dataloader(self) -> DataLoader:
         # Ascertain which validation dataset and batch size to use
