@@ -15,6 +15,8 @@ from pytorch_lightning.callbacks import TQDMProgressBar
 import torch
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+
+from project.datasets.DB5.db5_dgl_data_module import DB5DGLDataModule
 # -------------------------------------------------------------------------------------------------------------------------------------
 # Following code curated for DeepInteract (https://github.com/BioinfoMachineLearning/DeepInteract):
 # -------------------------------------------------------------------------------------------------------------------------------------
@@ -40,8 +42,18 @@ def main(args):
                                          testing_with_casp_capri=False, #args.testing_with_casp_capri,
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
-    picp_data_module.setup()
+    # picp_data_module.setup()
 
+    db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
+        batch_size=1, 
+        num_dataloader_workers=1, 
+        knn=args.knn,
+        self_loops=args.self_loops, 
+        percent_to_use=args.db5_percent_to_use, 
+        process_complexes=args.process_complexes, 
+        input_indep=args.input_indep,
+        )
+    db5_data_module.setup()
     # ------------
     # Fine-Tuning
     # ------------
@@ -160,7 +172,7 @@ def main(args):
     # Training
     # -------------
     # Train with the provided model and DataModule
-    trainer.fit(model=model, datamodule=picp_data_module)
+    trainer.fit(model=model, datamodule=db5_data_module)
 
     # -------------
     # Testing
