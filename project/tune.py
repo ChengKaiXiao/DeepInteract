@@ -189,7 +189,7 @@ if __name__ == '__main__':
     args.max_epochs = args.num_epochs
     args.profiler = args.profiler_method
     # args.accelerator = args.multi_gpu_backend
-    args.strategy = args.train_strategy
+    # args.strategy = args.train_strategy
     args.auto_select_gpus = args.auto_choose_gpus
     args.gpus = args.num_gpus
     # args.num_nodes = args.num_compute_nodes
