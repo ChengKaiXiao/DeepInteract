@@ -27,33 +27,33 @@ def main(args):
     # Data
     # -----------
     # Load protein interface contact prediction (PICP) data module
-    picp_data_module = PICPDGLDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
-                                         db5_data_dir=args.db5_data_dir,
-                                         dips_data_dir=args.dips_data_dir,
-                                         batch_size=args.batch_size,
-                                         num_dataloader_workers=args.num_workers,
-                                         knn=args.knn,
-                                         self_loops=args.self_loops,
-                                         pn_ratio=args.pn_ratio,
-                                         casp_capri_percent_to_use=args.casp_capri_percent_to_use,
-                                         db5_percent_to_use=args.db5_percent_to_use,
-                                         dips_percent_to_use=args.dips_percent_to_use,
-                                         training_with_db5=True,
-                                         testing_with_casp_capri=False, #args.testing_with_casp_capri,
-                                         process_complexes=args.process_complexes,
-                                         input_indep=args.input_indep)
-    picp_data_module.setup()
+    # picp_data_module = PICPDGLDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
+    #                                      db5_data_dir=args.db5_data_dir,
+    #                                      dips_data_dir=args.dips_data_dir,
+    #                                      batch_size=args.batch_size,
+    #                                      num_dataloader_workers=args.num_workers,
+    #                                      knn=args.knn,
+    #                                      self_loops=args.self_loops,
+    #                                      pn_ratio=args.pn_ratio,
+    #                                      casp_capri_percent_to_use=args.casp_capri_percent_to_use,
+    #                                      db5_percent_to_use=args.db5_percent_to_use,
+    #                                      dips_percent_to_use=args.dips_percent_to_use,
+    #                                      training_with_db5=True,
+    #                                      testing_with_casp_capri=False, #args.testing_with_casp_capri,
+    #                                      process_complexes=args.process_complexes,
+    #                                      input_indep=args.input_indep)
+    # picp_data_module.setup()
 
-    # db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
-    #     batch_size=1, 
-    #     num_dataloader_workers=1, 
-    #     knn=args.knn,
-    #     self_loops=args.self_loops, 
-    #     percent_to_use=args.db5_percent_to_use, 
-    #     process_complexes=args.process_complexes, 
-    #     input_indep=args.input_indep,
-    #     )
-    # db5_data_module.setup()
+    db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
+        batch_size=1, 
+        num_dataloader_workers=1, 
+        knn=args.knn,
+        self_loops=args.self_loops, 
+        percent_to_use=args.db5_percent_to_use, 
+        process_complexes=args.process_complexes, 
+        input_indep=args.input_indep,
+        )
+    db5_data_module.setup()
     # ------------
     # Fine-Tuning
     # ------------
@@ -119,7 +119,7 @@ def main(args):
     # Learning Rate
     # -------------
     if args.find_lr:
-        lr_finder = trainer.tuner.lr_find(model, datamodule=picp_data_module)  # Run learning rate finder
+        lr_finder = trainer.tuner.lr_find(model, datamodule=db5_data_module)  # Run learning rate finder
         fig = lr_finder.plot(suggest=True)  # Plot learning rates
         fig.savefig('optimal_lr.pdf')
         fig.show()
@@ -172,7 +172,7 @@ def main(args):
     # Training
     # -------------
     # Train with the provided model and DataModule
-    trainer.fit(model=model, datamodule=picp_data_module)
+    trainer.fit(model=model, datamodule=db5_data_module)
 
     # -------------
     # Testing
