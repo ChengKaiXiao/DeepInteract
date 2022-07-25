@@ -67,7 +67,8 @@ def main(args):
     # ckpt_provided = args.ckpt_name != '' and ckpt_path_exists
 
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt')
-    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt')
+    # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt')
+    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_1/version_None/checkpoints/LitGINI-epoch=46-val_ce=0.024.ckpt')
     # ------------
     # Model
     # ------------
@@ -100,7 +101,7 @@ def main(args):
                     metric_to_track=dict_args['metric_to_track'],
                     weight_decay=dict_args['weight_decay'],
                     batch_size=dict_args['batch_size'],
-                    lr=1e-5,#dict_args['lr'],
+                    lr=5e-5,#dict_args['lr'],
                     pad=dict_args['pad'],
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],

@@ -1035,7 +1035,7 @@ def collect_args():
     # Logging arguments
     # -----------------
     parser.add_argument('--logger_name', type=str, default='wandb', help='Which logger to use for experiments')
-    parser.add_argument('--experiment_name', type=str, default='Model_128_finetune_1', help='Logger experiment name')
+    parser.add_argument('--experiment_name', type=str, default='Model_128_finetune_2', help='Logger experiment name')
     parser.add_argument('--project_name', type=str, default='DeepInteract', help='Logger project name')
     parser.add_argument('--entity', type=str, default='lancgraphers', help='Logger entity (i.e. team) name')
     parser.add_argument('--run_id', type=str, default='', help='Logger run ID')
