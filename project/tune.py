@@ -38,22 +38,22 @@ def main(args):
                                          casp_capri_percent_to_use=args.casp_capri_percent_to_use,
                                          db5_percent_to_use=args.db5_percent_to_use,
                                          dips_percent_to_use=args.dips_percent_to_use,
-                                         training_with_db5=True,
+                                         training_with_db5=False,
                                          testing_with_casp_capri=False, #args.testing_with_casp_capri,
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
-    # picp_data_module.setup()
+    picp_data_module.setup()
 
-    db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
-        batch_size=1, 
-        num_dataloader_workers=1, 
-        knn=args.knn,
-        self_loops=args.self_loops, 
-        percent_to_use=args.db5_percent_to_use, 
-        process_complexes=args.process_complexes, 
-        input_indep=args.input_indep,
-        )
-    db5_data_module.setup()
+    # db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
+    #     batch_size=1, 
+    #     num_dataloader_workers=1, 
+    #     knn=args.knn,
+    #     self_loops=args.self_loops, 
+    #     percent_to_use=args.db5_percent_to_use, 
+    #     process_complexes=args.process_complexes, 
+    #     input_indep=args.input_indep,
+    #     )
+    # db5_data_module.setup()
     # ------------
     # Fine-Tuning
     # ------------
@@ -172,7 +172,7 @@ def main(args):
     # Training
     # -------------
     # Train with the provided model and DataModule
-    trainer.fit(model=model, datamodule=db5_data_module)
+    trainer.fit(model=model, datamodule=picp_data_module)
 
     # -------------
     # Testing
