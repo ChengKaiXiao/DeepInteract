@@ -153,7 +153,7 @@ def main(args):
     model = model.load_from_checkpoint(ckpt_path,
                                         use_wandb_logger=use_wandb_logger,
                                         batch_size=args.batch_size,
-                                        lr=args.lr,
+                                        lr=1e-5,
                                         weight_decay=args.weight_decay)
 
     # -------------
