@@ -30,7 +30,7 @@ def main(args):
     # Data
     # -----------
     # Load protein interface contact prediction (PICP) data module
-    picp_data_module = PICPDGLDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
+    picp_data_module = DB5GeneralDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
                                          db5_data_dir=args.db5_data_dir,
                                          dips_data_dir=args.dips_data_dir,
                                          batch_size=args.batch_size,
