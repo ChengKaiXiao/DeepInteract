@@ -104,7 +104,7 @@ def main(args):
                     pad=dict_args['pad'],
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
-                    fine_tune=False,
+                    fine_tune=True,
                     ckpt_path=ckpt_path)
     args.experiment_name = f'LitGINI-b{args.batch_size}-gl{args.num_gnn_layers}' \
                            f'-n{args.num_gnn_hidden_channels}' \
@@ -167,11 +167,11 @@ def main(args):
     # ------------
     # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
     
-    model = model.load_from_checkpoint(ckpt_path,
-                                        use_wandb_logger=use_wandb_logger,
-                                        batch_size=args.batch_size,
-                                        lr=1e-5,
-                                        weight_decay=args.weight_decay)
+    # model = model.load_from_checkpoint(ckpt_path,
+    #                                     use_wandb_logger=use_wandb_logger,
+    #                                     batch_size=args.batch_size,
+    #                                     lr=1e-5,
+    #                                     weight_decay=args.weight_decay)
 
     # -------------
     # Training
