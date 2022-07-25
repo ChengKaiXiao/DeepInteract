@@ -1089,6 +1089,8 @@ def collect_args():
     parser.add_argument('--find_lr', action='store_true', dest='find_lr', help='Find an optimal learning rate a priori')
     parser.add_argument('--input_indep', action='store_true', dest='input_indep', help='Whether to zero input for test')
 
+    parser.add_argument('--num_sanity_val_steps', type=int, default=1,)
+
     return parser
 
 
