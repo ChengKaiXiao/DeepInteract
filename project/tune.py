@@ -5,6 +5,7 @@ from pathlib import Path
 import pytorch_lightning as pl
 import torch.nn as nn
 
+
 from project.datasets.PICP.picp_dgl_data_module import PICPDGLDataModule
 from project.utils.deepinteract_constants import NODE_COUNT_LIMIT, RESIDUE_COUNT_LIMIT
 from project.utils.mymodel import LitGINI
@@ -17,6 +18,8 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 from project.datasets.DB5.db5_dgl_data_module import DB5DGLDataModule
+
+from project.datasets.PICP.general_data_module import DB5GeneralDataModule
 # -------------------------------------------------------------------------------------------------------------------------------------
 # Following code curated for DeepInteract (https://github.com/BioinfoMachineLearning/DeepInteract):
 # -------------------------------------------------------------------------------------------------------------------------------------
@@ -27,33 +30,35 @@ def main(args):
     # Data
     # -----------
     # Load protein interface contact prediction (PICP) data module
-    # picp_data_module = PICPDGLDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
-    #                                      db5_data_dir=args.db5_data_dir,
-    #                                      dips_data_dir=args.dips_data_dir,
-    #                                      batch_size=args.batch_size,
-    #                                      num_dataloader_workers=args.num_workers,
-    #                                      knn=args.knn,
-    #                                      self_loops=args.self_loops,
-    #                                      pn_ratio=args.pn_ratio,
-    #                                      casp_capri_percent_to_use=args.casp_capri_percent_to_use,
-    #                                      db5_percent_to_use=args.db5_percent_to_use,
-    #                                      dips_percent_to_use=args.dips_percent_to_use,
-    #                                      training_with_db5=True,
-    #                                      testing_with_casp_capri=False, #args.testing_with_casp_capri,
-    #                                      process_complexes=args.process_complexes,
-    #                                      input_indep=args.input_indep)
-    # picp_data_module.setup()
+    picp_data_module = DB5GeneralDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
+                                         db5_data_dir=args.db5_data_dir,
+                                         dips_data_dir=args.dips_data_dir,
+                                         batch_size=args.batch_size,
+                                         num_dataloader_workers=args.num_workers,
+                                         knn=args.knn,
+                                         self_loops=args.self_loops,
+                                         pn_ratio=args.pn_ratio,
+                                         casp_capri_percent_to_use=args.casp_capri_percent_to_use,
+                                         db5_percent_to_use=args.db5_percent_to_use,
+                                         dips_percent_to_use=args.dips_percent_to_use,
+                                         training_with_db5=True,
+                                         testing_with_casp_capri=False, #args.testing_with_casp_capri,
+                                         process_complexes=args.process_complexes,
+                                         input_indep=args.input_indep)
+    picp_data_module.setup()
 
-    db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
-        batch_size=1, 
-        num_dataloader_workers=1, 
-        knn=args.knn,
-        self_loops=args.self_loops, 
-        percent_to_use=args.db5_percent_to_use, 
-        process_complexes=args.process_complexes, 
-        input_indep=args.input_indep,
-        )
-    db5_data_module.setup()
+
+
+    # db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
+    #     batch_size=1, 
+    #     num_dataloader_workers=1, 
+    #     knn=args.knn,
+    #     self_loops=args.self_loops, 
+    #     percent_to_use=args.db5_percent_to_use, 
+    #     process_complexes=args.process_complexes, 
+    #     input_indep=args.input_indep,
+    #     )
+    # db5_data_module.setup()
     # ------------
     # Fine-Tuning
     # ------------
@@ -99,7 +104,7 @@ def main(args):
                     pad=dict_args['pad'],
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
-                    fine_tune=True,
+                    fine_tune=False,
                     ckpt_path=ckpt_path)
     args.experiment_name = f'LitGINI-b{args.batch_size}-gl{args.num_gnn_layers}' \
                            f'-n{args.num_gnn_hidden_channels}' \
@@ -119,7 +124,7 @@ def main(args):
     # Learning Rate
     # -------------
     if args.find_lr:
-        lr_finder = trainer.tuner.lr_find(model, datamodule=db5_data_module)  # Run learning rate finder
+        lr_finder = trainer.tuner.lr_find(model, datamodule=picp_data_module)  # Run learning rate finder
         fig = lr_finder.plot(suggest=True)  # Plot learning rates
         fig.savefig('optimal_lr.pdf')
         fig.show()
@@ -162,17 +167,17 @@ def main(args):
     # ------------
     # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
     
-    # model = model.load_from_checkpoint(ckpt_path,
-    #                                     use_wandb_logger=use_wandb_logger,
-    #                                     batch_size=args.batch_size,
-    #                                     lr=1e-5,
-    #                                     weight_decay=args.weight_decay)
+    model = model.load_from_checkpoint(ckpt_path,
+                                        use_wandb_logger=use_wandb_logger,
+                                        batch_size=args.batch_size,
+                                        lr=1e-5,
+                                        weight_decay=args.weight_decay)
 
     # -------------
     # Training
     # -------------
     # Train with the provided model and DataModule
-    trainer.fit(model=model, datamodule=db5_data_module)
+    trainer.fit(model=model, datamodule=picp_data_module)
 
     # -------------
     # Testing
