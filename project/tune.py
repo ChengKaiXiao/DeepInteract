@@ -38,7 +38,7 @@ def main(args):
                                          casp_capri_percent_to_use=args.casp_capri_percent_to_use,
                                          db5_percent_to_use=args.db5_percent_to_use,
                                          dips_percent_to_use=args.dips_percent_to_use,
-                                         training_with_db5=False,
+                                         training_with_db5=True,
                                          testing_with_casp_capri=False, #args.testing_with_casp_capri,
                                          process_complexes=args.process_complexes,
                                          input_indep=args.input_indep)
