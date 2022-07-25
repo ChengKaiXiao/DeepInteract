@@ -66,8 +66,8 @@ def main(args):
     # ckpt_path_exists = os.path.exists(ckpt_path)
     # ckpt_provided = args.ckpt_name != '' and ckpt_path_exists
 
-    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt')
-
+    # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt')
+    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt')
     # ------------
     # Model
     # ------------
