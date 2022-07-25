@@ -150,11 +150,11 @@ def main(args):
     # ------------
     # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
     
-    model = model.load_from_checkpoint(ckpt_path,
-                                        use_wandb_logger=use_wandb_logger,
-                                        batch_size=args.batch_size,
-                                        lr=args.lr,
-                                        weight_decay=args.weight_decay)
+    # model = model.load_from_checkpoint(ckpt_path,
+    #                                     use_wandb_logger=use_wandb_logger,
+    #                                     batch_size=args.batch_size,
+    #                                     lr=args.lr,
+    #                                     weight_decay=args.weight_decay)
 
     # -------------
     # Training
