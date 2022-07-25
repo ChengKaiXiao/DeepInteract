@@ -88,7 +88,7 @@ def main(args):
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
                     fine_tune=dict_args['fine_tune'],
-                    ckpt_path=ckpt_path)
+                    ckpt_path=None)
     args.experiment_name = f'LitGINI-b{args.batch_size}-gl{args.num_gnn_layers}' \
                            f'-n{args.num_gnn_hidden_channels}' \
                            f'-e{args.num_gnn_hidden_channels}' \
