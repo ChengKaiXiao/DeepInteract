@@ -177,7 +177,7 @@ def main(args):
     # Training
     # -------------
     # Train with the provided model and DataModule
-    trainer.fit(model=model, datamodule=picp_data_module)
+    # trainer.fit(model=model, datamodule=picp_data_module)
 
     # -------------
     # Testing
