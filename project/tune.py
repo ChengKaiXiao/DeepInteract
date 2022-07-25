@@ -154,12 +154,12 @@ def main(args):
         save_top_k=3,
         filename=template_ckpt_filename  # Warning: May cause a race condition if calling trainer.test() with many GPUs
     )
-    lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
+    # lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval='step', log_momentum=True)
 
     progress_bar = TQDMProgressBar(refresh_rate=100)
     callbacks = [early_stop_callback, ckpt_callback, progress_bar]
-    if args.fine_tune:
-        callbacks.append(lr_monitor_callback)
+    # if args.fine_tune:
+    #     callbacks.append(lr_monitor_callback)
     trainer.callbacks = callbacks
 
     # ------------
@@ -177,7 +177,7 @@ def main(args):
     # Training
     # -------------
     # Train with the provided model and DataModule
-    # trainer.fit(model=model, datamodule=picp_data_module)
+    trainer.fit(model=model, datamodule=picp_data_module)
 
     # -------------
     # Testing
