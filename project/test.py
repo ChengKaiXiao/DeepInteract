@@ -140,8 +140,9 @@ def main(args):
     # Restore
     # ------------
     # If using WandB, download checkpoint artifact from their servers if the checkpoint is not already stored locally
-    #checkpointPath = '/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt'
-    checkpointPath = '/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt'
+    # checkpointPath = '/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt'
+    # checkpointPath = '/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt'
+    checkpointPath = '/home/ubuntu/project/DeepInteract/project/Model_128_finetune_2/version_None/checkpoints/LitGINI-epoch=42-val_ce=0.022.ckpt'
     model = model.load_from_checkpoint(Path(checkpointPath),
                                         use_wandb_logger=use_wandb_logger,
                                         batch_size=args.batch_size,
