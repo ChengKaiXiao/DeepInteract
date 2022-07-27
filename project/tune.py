@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from project.datasets.PICP.picp_dgl_data_module import PICPDGLDataModule
 from project.utils.deepinteract_constants import NODE_COUNT_LIMIT, RESIDUE_COUNT_LIMIT
-from project.utils.mymodel import LitGINI
+from project.utils.model import LitGINI
 from project.utils.deepinteract_utils import collect_args, process_args, construct_pl_logger
 
 from pytorch_lightning.callbacks import TQDMProgressBar
@@ -106,7 +106,19 @@ def main(args):
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
                     fine_tune=True,
-                    ckpt_path=ckpt_path)
+                    ckpt_path=ckpt_path,
+                    # Graphormer
+                    layers=dict_args['layers'], 
+                    blocks=dict_args['blocks'], 
+                    embed_dim=dict_args['embed_dim'], 
+                    ffn_embed_dim=dict_args['ffn_embed_dim'],
+                    attention_heads=dict_args['attention_heads'], 
+                    dropout=dict_args['dropout'], 
+                    attention_dropout=dict_args['attention_dropout'],
+                    activation_dropout=dict_args['activation_dropout'], 
+                    input_dropout=dict_args['input_dropout'],
+                    num_kernel=dict_args['num_kernel'],
+                    )
     args.experiment_name = f'LitGINI-b{args.batch_size}-gl{args.num_gnn_layers}' \
                            f'-n{args.num_gnn_hidden_channels}' \
                            f'-e{args.num_gnn_hidden_channels}' \

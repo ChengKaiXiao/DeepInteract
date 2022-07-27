@@ -60,8 +60,6 @@ def main(args):
                     testing_with_casp_capri=dict_args['testing_with_casp_capri'],
                     training_with_db5=dict_args['training_with_db5'],
                     pos_prob_threshold=0.5,
-                    num_gnn_hidden_channels=dict_args['num_gnn_hidden_channels'],
-                    num_gnn_attention_heads=dict_args['num_gnn_attention_heads'],
                     knn=dict_args['knn'],
                     interact_module_type=dict_args['interact_module_type'],
                     num_interact_layers=dict_args['num_interact_layers'],
@@ -80,7 +78,7 @@ def main(args):
                     weight_classes=dict_args['weight_classes'],
                     fine_tune=dict_args['fine_tune'],
                     ckpt_path=None,
-
+                    # Graphormer
                     layers=dict_args['layers'], 
                     blocks=dict_args['blocks'], 
                     embed_dim=dict_args['embed_dim'], 
