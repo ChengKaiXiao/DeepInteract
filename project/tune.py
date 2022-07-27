@@ -47,6 +47,22 @@ def main(args):
                                          input_indep=args.input_indep)
     picp_data_module.setup()
 
+    test_data_module = PICPDGLDataModule(casp_capri_data_dir=args.casp_capri_data_dir,
+                                         db5_data_dir=args.db5_data_dir,
+                                         dips_data_dir=args.dips_data_dir,
+                                         batch_size=args.batch_size,
+                                         num_dataloader_workers=args.num_workers,
+                                         knn=args.knn,
+                                         self_loops=args.self_loops,
+                                         pn_ratio=args.pn_ratio,
+                                         casp_capri_percent_to_use=args.casp_capri_percent_to_use,
+                                         db5_percent_to_use=args.db5_percent_to_use,
+                                         dips_percent_to_use=args.dips_percent_to_use,
+                                         training_with_db5=True, #args.training_with_db5,
+                                         testing_with_casp_capri=False,
+                                         process_complexes=args.process_complexes,
+                                         input_indep=args.input_indep)
+    test_data_module.setup()
 
 
     # db5_data_module = DB5DGLDataModule(data_dir=args.db5_data_dir, 
@@ -69,7 +85,8 @@ def main(args):
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt')
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt')
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_1/version_None/checkpoints/LitGINI-epoch=46-val_ce=0.024.ckpt')
-    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_2/version_None/checkpoints/LitGINI-epoch=42-val_ce=0.022.ckpt')
+    # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_2/version_None/checkpoints/LitGINI-epoch=42-val_ce=0.022.ckpt')
+    ckpt_path ='/home/ubuntu/project/DeepInteract/project/Model_Tune_Interact_Module/version_None/checkpoints/LitGINI-epoch=14-val_ce=0.020.ckpt'
 
     # ------------
     # Model
@@ -101,7 +118,7 @@ def main(args):
                     metric_to_track=dict_args['metric_to_track'],
                     weight_decay=dict_args['weight_decay'],
                     batch_size=dict_args['batch_size'],
-                    lr=5e-5,#dict_args['lr'],
+                    lr=5e-4,#dict_args['lr'],
                     pad=dict_args['pad'],
                     use_wandb_logger=use_wandb_logger,
                     weight_classes=dict_args['weight_classes'],
@@ -195,7 +212,7 @@ def main(args):
     # -------------
     # Testing
     # -------------
-    trainer.test()
+    trainer.test(model=model, datamodule=test_data_module)
 
 
 if __name__ == '__main__':

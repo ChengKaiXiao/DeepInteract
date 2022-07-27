@@ -468,8 +468,8 @@ class LitGINI(pl.LightningModule):
                                                     dropout_rate=self.dropout_rate)
             self.gnn_module, self.interact_module = lit_gini.gnn_module, lit_gini.interact_module
             # Freeze the interaction module during fine-tuning
-            # for param in self.interact_module.parameters():
-            for param in self.gnn_module.parameters():
+            for param in self.interact_module.parameters():
+            # for param in self.gnn_module.parameters():
                 param.requires_grad = False
         else:
             self.build_gnn_module(), self.build_interaction_module()
