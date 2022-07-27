@@ -1035,7 +1035,7 @@ def collect_args():
     # Logging arguments
     # -----------------
     parser.add_argument('--logger_name', type=str, default='wandb', help='Which logger to use for experiments')
-    parser.add_argument('--experiment_name', type=str, default='Model_128_finetune_2', help='Logger experiment name')
+    parser.add_argument('--experiment_name', type=str, default='Model_Clean', help='Logger experiment name')
     parser.add_argument('--project_name', type=str, default='DeepInteract', help='Logger project name')
     parser.add_argument('--entity', type=str, default='lancgraphers', help='Logger entity (i.e. team) name')
     parser.add_argument('--run_id', type=str, default='', help='Logger run ID')
@@ -1088,8 +1088,6 @@ def collect_args():
     parser.add_argument('--stc_weight_avg', action='store_true', dest='stc_weight_avg', help='Smooth loss landscape')
     parser.add_argument('--find_lr', action='store_true', dest='find_lr', help='Find an optimal learning rate a priori')
     parser.add_argument('--input_indep', action='store_true', dest='input_indep', help='Whether to zero input for test')
-
-    #parser.add_argument('--num_sanity_val_steps', type=int, default=1, help='Norm over which to clip gradients')
 
     return parser
 

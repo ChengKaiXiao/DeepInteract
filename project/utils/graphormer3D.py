@@ -270,6 +270,89 @@ def get_arguments():
 
     return args
 
+# class Graphormer3Dmodule(nn.Module):
+#     """
+#     Input 
+#     node_features: graph.ndata['f']
+#     pos: graph.ndata['x']
+#     """
+
+#     def __init__(self, args):
+#         super().__init__()
+#         # self.args = get_arguments()
+#         self.args = args
+#         self.edge_types = 20 * 20 # 20 ammino acids
+
+#         # embed atom types
+#         self.atom_types = 20
+#         self.input_dropout = self.args.input_dropout    # dropout prob
+#         self.layers = nn.ModuleList(
+#             [
+#                 Graphormer3DEncoderLayer(
+#                     self.args.embed_dim,
+#                     self.args.ffn_embed_dim,
+#                     num_attention_heads=self.args.attention_heads,
+#                     dropout=self.args.dropout,
+#                     attention_dropout=self.args.attention_dropout,
+#                     activation_dropout=self.args.activation_dropout,
+#                 )
+#                 for _ in range(self.args.layers)
+#             ]
+#         )
+
+#         self.final_ln: Callable[[Tensor], Tensor] = nn.LayerNorm(self.args.embed_dim)
+
+#         K = self.args.num_kernel
+
+#         self.gbf: Callable[[Tensor, Tensor], Tensor] = GaussianLayerNoEdge(K)
+#         self.bias_proj: Callable[[Tensor], Tensor] = NonLinear(
+#             K, self.args.attention_heads
+#         )
+#         self.edge_proj: Callable[[Tensor], Tensor] = nn.Linear(K, self.args.embed_dim)
+
+
+#     def set_num_updates(self, num_updates):
+#         self.num_updates = num_updates
+#         return super().set_num_updates(num_updates)
+
+#     def forward(self, node_feats: Tensor, pos: Tensor):
+#         n_node = node_feats.size()[0]
+
+#         #node_feats = self.input_embedding(node_feats)
+
+#         node_feats = node_feats.unsqueeze(dim=0) # add 1 batch dimension 
+#         pos = pos.unsqueeze(dim=0) # add 1 batch dimension 
+
+#         delta_pos = pos.unsqueeze(1) - pos.unsqueeze(2)
+#         dist = delta_pos.norm(dim=-1)
+
+#         gbf_feature = self.gbf(dist)
+
+#         # Centrality encoding
+#         graph_node_feature = (
+#             node_feats
+#             + self.edge_proj(gbf_feature.sum(dim=-2))
+#         )
+
+#         # ===== MAIN MODEL =====
+#         output = F.dropout(graph_node_feature, p=self.input_dropout, training=self.training)
+#         output = output.transpose(0, 1).contiguous()
+
+#         # Spatial encoding
+#         graph_attn_bias = self.bias_proj(gbf_feature).permute(0, 3, 1, 2).contiguous()
+
+#         graph_attn_bias = graph_attn_bias.view(-1, n_node, n_node)
+#         for _ in range(self.args.blocks):
+#             for enc_layer in self.layers:   # loop over all encoder layers
+#                 output = enc_layer(output, attn_bias=graph_attn_bias)
+
+#         output = self.final_ln(output)
+        
+#         output = output.transpose(0, 1)
+
+#         return output.squeeze(0)
+
+
 class Graphormer3Dmodule(nn.Module):
     """
     Input 
@@ -277,38 +360,44 @@ class Graphormer3Dmodule(nn.Module):
     pos: graph.ndata['x']
     """
 
-    def __init__(self, args):
+    def __init__(self, layers=4, blocks=12, embed_dim=128, ffn_embed_dim=128,
+                 attention_heads=8, dropout=0.1, attention_dropout=0.1,
+                 activation_dropout=0.0, input_dropout=0.0,
+                 num_kernel=128,):
         super().__init__()
-        # self.args = get_arguments()
-        self.args = args
-        self.edge_types = 20 * 20 # 20 ammino acids
-
-        # embed atom types
-        self.atom_types = 20
-        self.input_dropout = self.args.input_dropout    # dropout prob
+        self.layers = layers
+        self.blocks = blocks
+        self.embed_dim = embed_dim
+        self.ffn_embed_dim = ffn_embed_dim
+        self.attention_heads = attention_heads
+        self.dropout = dropout
+        self.attention_dropout = attention_dropout
+        self.activation_dropout = activation_dropout
+        self.num_kernel = num_kernel
+        self.input_dropout = input_dropout    # dropout prob
         self.layers = nn.ModuleList(
             [
                 Graphormer3DEncoderLayer(
-                    self.args.embed_dim,
-                    self.args.ffn_embed_dim,
-                    num_attention_heads=self.args.attention_heads,
-                    dropout=self.args.dropout,
-                    attention_dropout=self.args.attention_dropout,
-                    activation_dropout=self.args.activation_dropout,
+                    self.embed_dim,
+                    self.ffn_embed_dim,
+                    num_attention_heads=self.attention_heads,
+                    dropout=self.dropout,
+                    attention_dropout=self.attention_dropout,
+                    activation_dropout=self.activation_dropout,
                 )
-                for _ in range(self.args.layers)
+                for _ in range(self.layers)
             ]
         )
 
-        self.final_ln: Callable[[Tensor], Tensor] = nn.LayerNorm(self.args.embed_dim)
+        self.final_ln: Callable[[Tensor], Tensor] = nn.LayerNorm(self.embed_dim)
 
-        K = self.args.num_kernel
+        K = self.num_kernel
 
         self.gbf: Callable[[Tensor, Tensor], Tensor] = GaussianLayerNoEdge(K)
         self.bias_proj: Callable[[Tensor], Tensor] = NonLinear(
-            K, self.args.attention_heads
+            K, self.attention_heads
         )
-        self.edge_proj: Callable[[Tensor], Tensor] = nn.Linear(K, self.args.embed_dim)
+        self.edge_proj: Callable[[Tensor], Tensor] = nn.Linear(K, self.embed_dim)
 
 
     def set_num_updates(self, num_updates):
@@ -342,7 +431,7 @@ class Graphormer3Dmodule(nn.Module):
         graph_attn_bias = self.bias_proj(gbf_feature).permute(0, 3, 1, 2).contiguous()
 
         graph_attn_bias = graph_attn_bias.view(-1, n_node, n_node)
-        for _ in range(self.args.blocks):
+        for _ in range(self.blocks):
             for enc_layer in self.layers:   # loop over all encoder layers
                 output = enc_layer(output, attn_bias=graph_attn_bias)
 
@@ -351,7 +440,6 @@ class Graphormer3Dmodule(nn.Module):
         output = output.transpose(0, 1)
 
         return output.squeeze(0)
-
 
 # test = GaussianLayerNoEdge()
 # arg = get_arguments()
