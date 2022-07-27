@@ -453,7 +453,7 @@ class LitGINI(pl.LightningModule):
         self.dropout = dropout
         self.attention_dropout = attention_dropout
         self.activation_dropout = activation_dropout
-        self.input_droupout = input_dropout
+        self.input_dropout = input_dropout
         self.num_kernel = num_kernel    # num of kernels in Gaussain basis
 
         # Set up GNN node and edge embedding layers
