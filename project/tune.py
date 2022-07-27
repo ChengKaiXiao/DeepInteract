@@ -68,7 +68,9 @@ def main(args):
 
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_0/version_None/checkpoints/LitGINI-epoch=08-val_ce=0.019.ckpt')
     # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune/version_None/checkpoints/LitGINI-epoch=49-val_ce=0.024.ckpt')
-    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_1/version_None/checkpoints/LitGINI-epoch=46-val_ce=0.024.ckpt')
+    # ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_1/version_None/checkpoints/LitGINI-epoch=46-val_ce=0.024.ckpt')
+    ckpt_path = Path('/home/ubuntu/project/DeepInteract/project/Model_128_finetune_2/version_None/checkpoints/LitGINI-epoch=42-val_ce=0.022.ckpt')
+
     # ------------
     # Model
     # ------------
