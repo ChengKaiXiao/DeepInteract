@@ -1,5 +1,3 @@
-<div align="center">
-
 ## First time setup
 
 The following step is required in order to run DeepInteract:
