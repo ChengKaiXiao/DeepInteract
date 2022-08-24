@@ -1,35 +1,5 @@
 <div align="center">
 
-# Source code for Geometric Transformers for Protein Interface Contact Prediction (ICLR 2022)
-
-[![Paper](http://img.shields.io/badge/paper-arxiv.2110.02423-B31B1B.svg)](https://openreview.net/forum?id=CS4463zx6Hi) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6671582.svg)](https://doi.org/10.5281/zenodo.6671582)
-
-[<img src="https://twixes.gallerycdn.vsassets.io/extensions/twixes/pypi-assistant/1.0.3/1589834023190/Microsoft.VisualStudio.Services.Icons.Default" width="50"/>](https://pypi.org/project/DeepInteract/)
-
-![DeepInteract Architecture](https://github.com/BioinfoMachineLearning/DeepInteract/blob/main/img/DeepInteract_Architecture.png)
-
-![Geometric Transformer](https://github.com/BioinfoMachineLearning/DeepInteract/blob/main/img/Geometric_Transformer.png)
-
-</div>
-
-## Description
-
-A geometric deep learning pipeline for predicting protein interface contacts.
-
-## Citing this work
-
-If you use the code or data associated with this package, please cite:
-
-```bibtex
-@inproceedings{morehead2022geometric,
-  title={Geometric Transformers for Protein Interface Contact Prediction},
-  author={Alex Morehead and Chen Chen and Jianlin Cheng},
-  booktitle={International Conference on Learning Representations},
-  year={2022},
-  url={https://openreview.net/forum?id=CS4463zx6Hi}
-}
-```
-
 ## First time setup
 
 The following step is required in order to run DeepInteract:
